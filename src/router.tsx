@@ -12,6 +12,10 @@ import Leaderboard from './pages/Leaderboard'
 import { RequireAuth } from './components/Protected'
 import CreateHackathon from './pages/Organizer/CreateHackathon'
 import CommunicationHub from './pages/Comms/CommunicationHub'
+import Gamify from './pages/Gamify'
+import Gallery from './pages/Gallery'
+import Teams from './pages/Teams'
+import Community from './pages/Community'
 
 export const routes: RouteObject[] = [
   {
@@ -39,6 +43,10 @@ export const routes: RouteObject[] = [
           </RequireAuth>
         ) },
       { path: 'leaderboard', element: <Leaderboard /> },
+      { path: 'gamify', element: <Gamify /> },
+      { path: 'gallery', element: <Gallery /> },
+      { path: 'teams', element: <Teams /> },
+      { path: 'community', element: <Community /> },
       { path: 'organizer/create', element: (
           <RequireAuth>
             <CreateHackathon />

@@ -104,6 +104,15 @@ npm run preview
   - Announcements (organizer posts)
   - FAQs (organizer adds Q/A)
   - Q&A: participants ask, organizers answer
+- Gamification Dashboard (`/gamify`)
+  - Animated progress bars with CSS keyframes for hackathon stages
+  - Floating achievement badges with Framer Motion hover effects
+  - Interactive leaderboard with smooth sorting animations
+  - Particle celebration effects (Canvas) for milestones
+  - Gradient glassmorphism stat cards for user metrics
+  - Streak counter with fire emoji glow and spark animations
+  - Responsive badge collection using CSS Grid
+  - Dark/Light theme toggle with smooth transitions
 
 ## Routes Overview
 - Public
@@ -111,6 +120,7 @@ npm run preview
   - `/discover` — Hackathon discovery
   - `/hackathons/:id` — Hackathon detail, registration UI
   - `/leaderboard` — Leaderboard across submissions
+  - `/gamify` — Gamification dashboard showcase
   - `/comms/:id` — Communication Hub view (posting requires auth)
   - `/login` — Login by email
   - `/signup` — Signup with role
@@ -169,3 +179,22 @@ Note: Role checks are done in-UI (client side). Organizer-only actions are guard
 ---
 
 If you want, I can add a deploy workflow (Netlify/Vercel) and a sample backend schema or wire up integrations (GitHub, Figma, Google Drive).
+
+## Gamification Dashboard (`/gamify`)
+
+This page showcases a modern gamified experience:
+
+- Animated progress bars with CSS keyframes for hackathon stages.
+- Floating achievement badges with Framer Motion hover effects.
+- Interactive leaderboard with smooth sorting animations.
+- Particle celebration effects (Canvas) for milestones.
+- Gradient glassmorphism stat cards for user metrics.
+- Streak counter with fire emoji glow and spark animations.
+- Responsive badge collection using CSS Grid.
+- Dark/Light theme toggle with smooth transitions.
+
+Access it via the navbar link “Gamify” or open `/gamify` directly after running the dev server.
+
+### Theme Toggle
+
+The app uses a simple Theme Provider and a navbar toggle button to switch between dark and light. The background and cards respond via CSS variables for smooth transitions.
