@@ -23,6 +23,7 @@ export default function Navbar() {
           <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
           <NavLink to="/gallery" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gallery</NavLink>
           <NavLink to="/gamify" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gamify</NavLink>
+          <NavLink to="/quest-map" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Quest Map</NavLink>
           {user ? (
             <>
               <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>

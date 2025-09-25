@@ -17,6 +17,11 @@ import Gallery from './pages/Gallery'
 import Teams from './pages/Teams'
 import Community from './pages/Community'
 import JudgeDashboard from './pages/Dashboard/JudgeDashboard'
+import HackathonQuestMap from './pages/HackathonQuestMap'
+import EnhancedHackathonQuestMap from './pages/EnhancedHackathonQuestMap'
+import Simple3DTest from './components/Simple3DTest'
+import SimpleQuestMap from './pages/SimpleQuestMap'
+import StepByStepQuestMap from './pages/StepByStepQuestMap'
 
 export const routes: RouteObject[] = [
   {
@@ -50,6 +55,11 @@ export const routes: RouteObject[] = [
         ) },
       { path: 'leaderboard', element: <Leaderboard /> },
       { path: 'gamify', element: <Gamify /> },
+      { path: 'quest-map', element: <HackathonQuestMap /> },
+      { path: 'quest-map-enhanced', element: <EnhancedHackathonQuestMap /> },
+      { path: 'quest-map-simple', element: <SimpleQuestMap /> },
+      { path: 'quest-map-demo', element: <StepByStepQuestMap /> },
+      { path: '3d-test', element: <Simple3DTest /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'teams', element: <Teams /> },
       { path: 'community', element: <Community /> },
