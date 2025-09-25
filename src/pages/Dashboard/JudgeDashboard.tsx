@@ -15,6 +15,7 @@ export default function JudgeDashboard() {
   const teamFeedbacks = Object.values(useStore(s => s.teamFeedbacks))
   const sendJudgeMessage = useStore(s => s.sendJudgeMessage)
   const addTeamFeedback = useStore(s => s.addTeamFeedback)
+  const addEvaluation = useStore(s => s.addEvaluation)
   
   const [activeTab, setActiveTab] = useState('submissions')
   const [chatMessage, setChatMessage] = useState('')
@@ -22,6 +23,10 @@ export default function JudgeDashboard() {
   const [feedbackText, setFeedbackText] = useState('')
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null)
   const [isPublicFeedback, setIsPublicFeedback] = useState(true)
+  // Scores tab state
+  const [scoreView, setScoreView] = useState<'entry' | 'ranking'>('entry')
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null)
+  const [entryScores, setEntryScores] = useState<Record<string, number>>({}) // criterionId -> score
 
   // Get all judges for the current hackathon
   const judges = useMemo(() => {
@@ -61,6 +66,22 @@ export default function JudgeDashboard() {
     
     return scores
   }, [evaluations, users])
+
+  // Per-criterion aggregated averages per submission for ranking
+  const criterionAverages = useMemo(() => {
+    const map: Record<string, Record<string, { sum: number; count: number }>> = {}
+    // submissionId -> criterionId -> {sum,count}
+    evaluations.forEach(ev => {
+      ev.scores.forEach(sc => {
+        map[ev.submissionId] = map[ev.submissionId] || {}
+        const cur = map[ev.submissionId][sc.criterionId] || { sum: 0, count: 0 }
+        cur.sum += sc.score
+        cur.count += 1
+        map[ev.submissionId][sc.criterionId] = cur
+      })
+    })
+    return map
+  }, [evaluations])
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault()
@@ -170,39 +191,169 @@ export default function JudgeDashboard() {
         </div>
       )}
 
-      {/* Overall Scores Tab */}
+      {/* Overall Scores + Ranking Tab */}
       {activeTab === 'scores' && (
         <div className="card p-6">
-          <h2 className="text-xl font-semibold mb-4">Overall Scoring Overview</h2>
-          <div className="space-y-4">
-            {subs.map(su => {
-              const scores = submissionScores[su.id]
-              const team = teams[su.teamId]
-              const avgScore = scores ? (scores.total / scores.count).toFixed(1) : 'Not evaluated'
-              
-              return (
-                <div key={su.id} className="rounded-lg bg-white/5 p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="font-medium text-lg">{su.title}</h3>
-                      <p className="text-sm text-slate-300">Team: {team?.name}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-400">{avgScore}</div>
-                      <div className="text-sm text-slate-300">
-                        {scores ? `${scores.count} judge${scores.count !== 1 ? 's' : ''}` : 'No scores'}
-                      </div>
-                    </div>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl font-semibold">Scoring</h2>
+            <div className="ml-auto flex rounded-lg bg-white/5 p-1">
+              <button
+                onClick={() => setScoreView('entry')}
+                className={`px-3 py-1 rounded-md text-sm ${scoreView === 'entry' ? 'bg-blue-600 text-white' : 'text-slate-300'}`}
+              >Entry</button>
+              <button
+                onClick={() => setScoreView('ranking')}
+                className={`px-3 py-1 rounded-md text-sm ${scoreView === 'ranking' ? 'bg-blue-600 text-white' : 'text-slate-300'}`}
+              >Ranking</button>
+            </div>
+          </div>
+
+          {scoreView === 'entry' && currentHackathon && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Team list */}
+              <div className="lg:col-span-1">
+                <div className="rounded-lg bg-white/5 p-3">
+                  <h3 className="font-medium mb-2">Teams</h3>
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {subs.map(su => {
+                      const team = teams[su.teamId]
+                      const isSel = selectedSubmissionId === su.id
+                      const overall = submissionScores[su.id]
+                      const avg = overall ? (overall.total / overall.count).toFixed(1) : '-'
+                      return (
+                        <button
+                          key={su.id}
+                          onClick={() => {
+                            setSelectedSubmissionId(su.id)
+                            // Prefill with previous evaluation by this judge if available
+                            const myEv = evaluations
+                              .filter(e => e.submissionId === su.id && e.judgeId === currentUserId)
+                              .sort((a,b) => b.createdAt - a.createdAt)[0]
+                            const pre: Record<string, number> = {}
+                            myEv?.scores.forEach(sc => { pre[sc.criterionId] = sc.score })
+                            setEntryScores(pre)
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md ${isSel ? 'bg-blue-600/30 border border-blue-600/40' : 'hover:bg-white/10'}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{team?.name}</div>
+                              <div className="text-xs text-slate-400">{su.title}</div>
+                            </div>
+                            <div className="text-sm text-blue-300">{avg}</div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                    {subs.length === 0 && <p className="text-sm text-slate-400">No submissions yet.</p>}
                   </div>
-                  {scores && scores.judges.length > 0 && (
-                    <div className="text-sm text-slate-400">
-                      Evaluated by: {scores.judges.join(', ')}
-                    </div>
+                </div>
+              </div>
+
+              {/* Scoring form */}
+              <div className="lg:col-span-2">
+                <div className="rounded-lg bg-white/5 p-4">
+                  {!selectedSubmissionId ? (
+                    <p className="text-slate-300">Select a team on the left to enter scores.</p>
+                  ) : (
+                    (() => {
+                      const su = allSubs.find(s => s.id === selectedSubmissionId)!
+                      const team = teams[su.teamId]
+                      const hack = currentHackathon
+                      const totalEntered = hack.criteria.reduce((sum, c) => sum + (Number(entryScores[c.id] || 0)), 0)
+                      return (
+                        <form
+                          className="space-y-4"
+                          onSubmit={e => {
+                            e.preventDefault()
+                            const packed = hack.criteria.map(c => ({ criterionId: c.id, score: Number(entryScores[c.id] || 0) }))
+                            addEvaluation(su.id, packed, undefined)
+                            alert('Scores saved for ' + (team?.name || 'Team'))
+                          }}
+                        >
+                          <div className="mb-2">
+                            <h3 className="text-lg font-semibold">{team?.name}</h3>
+                            <div className="text-xs text-slate-400">{su.title}</div>
+                          </div>
+                          {hack.criteria.map(c => (
+                            <div key={c.id} className="grid grid-cols-1 sm:grid-cols-3 items-center gap-3">
+                              <label className="text-sm text-slate-300 sm:col-span-2">{c.label} (max {c.max})</label>
+                              <input
+                                className="input"
+                                type="number"
+                                min={0}
+                                max={c.max}
+                                value={entryScores[c.id] ?? ''}
+                                onChange={e => setEntryScores(s => ({ ...s, [c.id]: Number(e.target.value) }))}
+                              />
+                            </div>
+                          ))}
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-slate-300">Overall (sum): <span className="font-semibold text-blue-300">{totalEntered}</span></div>
+                            <button className="btn-primary" type="submit">Save Scores</button>
+                          </div>
+                        </form>
+                      )
+                    })()
                   )}
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            </div>
+          )}
+
+          {scoreView === 'ranking' && currentHackathon && (
+            <div className="space-y-4">
+              {/* Overall ranking */}
+              <div className="rounded-lg bg-white/5 p-4">
+                <h3 className="font-semibold mb-2">Overall Ranking (Average)</h3>
+                <div className="space-y-2">
+                  {subs
+                    .map(su => {
+                      const team = teams[su.teamId]
+                      const sc = submissionScores[su.id]
+                      const avg = sc ? sc.total / sc.count : 0
+                      return { id: su.id, teamName: team?.name || 'Unknown', avg }
+                    })
+                    .sort((a,b) => b.avg - a.avg)
+                    .map((row, idx) => (
+                      <div key={row.id} className="flex items-center justify-between px-3 py-2 rounded-md bg-white/5">
+                        <div className="flex items-center gap-3">
+                          <span className="badge">#{idx + 1}</span>
+                          <span className="font-medium">{row.teamName}</span>
+                        </div>
+                        <div className="text-blue-300 font-semibold">{row.avg ? row.avg.toFixed(1) : '-'}</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Ranking by criterion */}
+              {currentHackathon.criteria.map(c => (
+                <div key={c.id} className="rounded-lg bg-white/5 p-4">
+                  <h3 className="font-semibold mb-2">Ranking by {c.label}</h3>
+                  <div className="space-y-2">
+                    {subs
+                      .map(su => {
+                        const team = teams[su.teamId]
+                        const agg = criterionAverages[su.id]?.[c.id]
+                        const avg = agg ? agg.sum / agg.count : 0
+                        return { id: su.id, teamName: team?.name || 'Unknown', avg }
+                      })
+                      .sort((a,b) => b.avg - a.avg)
+                      .map((row, idx) => (
+                        <div key={row.id} className="flex items-center justify-between px-3 py-2 rounded-md bg-white/5">
+                          <div className="flex items-center gap-3">
+                            <span className="badge">#{idx + 1}</span>
+                            <span className="font-medium">{row.teamName}</span>
+                          </div>
+                          <div className="text-blue-300 font-semibold">{row.avg ? row.avg.toFixed(1) : '-'}</div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
