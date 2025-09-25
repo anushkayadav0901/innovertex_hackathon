@@ -259,10 +259,10 @@ export default function CompatibilityMeter({ team }: CompatibilityMeterProps) {
             {overallScore < 50 && (
               <li>• Consider adding members with complementary skills</li>
             )}
-            {metrics.find(m => m.name === 'Role Balance')?.score < 60 && (
+            {(metrics.find(m => m.name === 'Role Balance')?.score ?? 0) < 60 && (
               <li>• Try to balance different roles (frontend, backend, design, etc.)</li>
             )}
-            {metrics.find(m => m.name === 'Interest Overlap')?.score < 40 && (
+            {(metrics.find(m => m.name === 'Interest Overlap')?.score ?? 0) < 40 && (
               <li>• Look for members with shared interests or project goals</li>
             )}
           </ul>

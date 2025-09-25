@@ -46,13 +46,13 @@ export const EnhancedRegistrationGate: React.FC<StageProps> = ({ stage, teams, o
       </Box>
       
       {/* Animated doors */}
-      <animated.group rotation={leftDoorRotation}>
+      <animated.group rotation={leftDoorRotation as any}>
         <Box args={[1.8, 3.5, 0.2]} position={[-1, 1.75, 0]}>
           <meshStandardMaterial color="#6d28d9" />
         </Box>
       </animated.group>
       
-      <animated.group rotation={rightDoorRotation}>
+      <animated.group rotation={rightDoorRotation as any}>
         <Box args={[1.8, 3.5, 0.2]} position={[1, 1.75, 0]}>
           <meshStandardMaterial color="#6d28d9" />
         </Box>
@@ -75,7 +75,7 @@ export const EnhancedRegistrationGate: React.FC<StageProps> = ({ stage, teams, o
               2 + Math.cos(i * 1.5) * 0.5,
               Math.cos(i * 1.2) * 2
             ]}>
-              <meshBasicMaterial color="#8b5cf6" transparent opacity={0.7} />
+              <meshStandardMaterial color="#8b5cf6" transparent opacity={0.7} />
             </Sphere>
           ))}
         </Float>
@@ -190,7 +190,7 @@ export const EnhancedPrototypeTower: React.FC<StageProps> = ({ stage, teams, onS
           1.5 + (i % 3) * 0.5,
           Math.cos(i * Math.PI / 3) * 1.1
         ]}>
-          <meshBasicMaterial 
+          <meshStandardMaterial 
             color="#fbbf24" 
             emissive="#fbbf24" 
             emissiveIntensity={0.8}
@@ -291,13 +291,13 @@ export const EnhancedPitchArena: React.FC<StageProps> = ({ stage, teams, onStage
       {spotlightsOn && (
         <>
           <Cone args={[0.8, 2]} position={[-2, 2, 2]} rotation={[Math.PI / 6, 0, 0]}>
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.1} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.1} />
           </Cone>
           <Cone args={[0.8, 2]} position={[2, 2, 2]} rotation={[Math.PI / 6, 0, 0]}>
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.1} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.1} />
           </Cone>
           <Cone args={[0.8, 2]} position={[0, 2, -2]} rotation={[-Math.PI / 6, 0, 0]}>
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.1} />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.1} />
           </Cone>
         </>
       )}
@@ -387,7 +387,7 @@ export const EnhancedWinnersPodium: React.FC<StageProps & { showFireworks?: bool
                 6 + Math.sin(i * 2) * 2,
                 Math.cos(i * 2) * 2
               ]}>
-                <meshBasicMaterial 
+                <meshStandardMaterial 
                   color={['#ff6b6b', '#4ecdc4', '#45b7d1'][i]}
                   emissive={['#ff6b6b', '#4ecdc4', '#45b7d1'][i]}
                   emissiveIntensity={0.8}
@@ -429,7 +429,7 @@ export const StageInfoPanel: React.FC<{
 }> = ({ stage, onClose, teams }) => {
   if (!stage) return null;
 
-  const teamsAtStage = teams.filter(team => team.stageIndex === teams.findIndex(t => t.stageIndex === teams.indexOf(teams.find(tm => tm.stageIndex === stage.position.indexOf(stage.position[0])))));
+  const teamsAtStage = teams.filter((team): team is Team => team !== undefined && team.stageIndex === 0);
 
   return (
     <Html position={[stage.position[0], stage.position[1] + 6, stage.position[2]]} center>

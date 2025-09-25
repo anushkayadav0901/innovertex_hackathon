@@ -98,7 +98,7 @@ export default function TeamBuilder({ currentTeam, likedMembers, onAddToTeam, on
                           <motion.div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                            {...(provided.dragHandleProps as any)}
                             className={`glassmorphism rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all ${
                               snapshot.isDragging ? 'shadow-2xl scale-105 rotate-2' : ''
                             }`}
@@ -175,7 +175,7 @@ export default function TeamBuilder({ currentTeam, likedMembers, onAddToTeam, on
                           <motion.div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            {...provided.dragHandleProps}
+                            {...(provided.dragHandleProps as any)}
                             className={`glassmorphism rounded-xl p-4 cursor-grab active:cursor-grabbing transition-all ${
                               snapshot.isDragging ? 'shadow-2xl scale-105 rotate-2' : ''
                             }`}

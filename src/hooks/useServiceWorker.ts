@@ -190,7 +190,7 @@ export function useBackgroundSync() {
     }
 
     const registration = await navigator.serviceWorker.ready;
-    await registration.sync.register(tag);
+    await (registration as any).sync?.register(tag);
   };
 
   return {

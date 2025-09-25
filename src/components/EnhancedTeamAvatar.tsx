@@ -91,22 +91,22 @@ const EnhancedTeamAvatar: React.FC<EnhancedTeamAvatarProps> = ({
           return (
             <mesh key={index} position={midPoint}>
               <cylinderGeometry args={[0.02, 0.02, distance]} />
-              <meshBasicMaterial 
+              <meshStandardMaterial 
                 color={team.color}
                 transparent
                 opacity={0.6 * (index / trailPoints.length)}
                 emissive={team.color}
-                emissiveIntensity={0.3}
+                emissiveIntensity={0.2}
+                metalness={0.3}
+                roughness={0.4}
               />
             </mesh>
           );
         })}
-        
-        {/* Trail particles */}
         {trailPoints.map((point, index) => (
           <mesh key={`particle-${index}`} position={point}>
             <sphereGeometry args={[0.03]} />
-            <meshBasicMaterial 
+            <meshStandardMaterial 
               color={team.color}
               transparent
               opacity={0.8 * (index / trailPoints.length)}
@@ -150,7 +150,7 @@ const EnhancedTeamAvatar: React.FC<EnhancedTeamAvatarProps> = ({
         {/* Glowing ring effect */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.5, 0.6, 16]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color={team.color}
             transparent
             opacity={isHovered ? 0.4 : 0.2}

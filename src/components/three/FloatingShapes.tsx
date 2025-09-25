@@ -45,10 +45,10 @@ function FloatingShape({ position, geometry, scale, color, mousePosition }: Shap
     cone: Cone
   }[geometry]
 
-  const args = geometry === 'torus' ? [0.3, 0.1, 16, 100] : geometry === 'cone' ? [0.3, 0.6, 8] : [0.4]
+  const args = geometry === 'torus' ? [0.3, 0.1, 16, 100] : geometry === 'cone' ? [0.3, 0.6, 8] : [0.4, 16]
 
   return (
-    <GeometryComponent ref={meshRef} position={position} scale={scale} args={args}>
+    <GeometryComponent ref={meshRef} position={position} scale={scale} args={args as any}>
       <meshStandardMaterial 
         color={color}
         emissive={color}
@@ -89,7 +89,7 @@ export default function FloatingShapes({ mousePosition }: FloatingShapesProps) {
         {shapes.map((shape, index) => (
           <FloatingShape
             key={index}
-            position={shape.position}
+            position={shape.position as [number, number, number]}
             geometry={shape.geometry}
             scale={shape.scale}
             color={shape.color}

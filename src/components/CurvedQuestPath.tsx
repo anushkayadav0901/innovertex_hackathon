@@ -132,7 +132,7 @@ const CurvedQuestPath: React.FC<CurvedQuestPathProps> = ({ stages, animated = tr
           return (
             <mesh key={index} position={point}>
               <sphereGeometry args={[0.03]} />
-              <meshBasicMaterial
+              <meshStandardMaterial
                 color="#00ff88"
                 emissive="#00ff88"
                 emissiveIntensity={0.5}
@@ -151,7 +151,7 @@ const CurvedQuestPath: React.FC<CurvedQuestPathProps> = ({ stages, animated = tr
             rotation={[Math.PI / 2, 0, 0]}
           >
             <ringGeometry args={[0.8, 1.0, 16]} />
-            <meshBasicMaterial
+            <meshStandardMaterial
               color="#4ade80"
               emissive="#4ade80"
               emissiveIntensity={0.4}
@@ -170,7 +170,7 @@ const CurvedQuestPath: React.FC<CurvedQuestPathProps> = ({ stages, animated = tr
         return (
           <mesh key={`marker-${index}`} position={point}>
             <cylinderGeometry args={[0.02, 0.02, 0.2]} />
-            <meshBasicMaterial
+            <meshStandardMaterial
               color="#4ade80"
               emissive="#4ade80"
               emissiveIntensity={0.3}
