@@ -24,6 +24,7 @@ import SimpleQuestMap from './pages/SimpleQuestMap'
 import StepByStepQuestMap from './pages/StepByStepQuestMap'
 import HackathonUniverseSystem from './pages/HackathonUniverseSystem'
 import SearchInterface from './components/SearchInterface'
+import PerformanceDemo from './pages/PerformanceDemo'
 
 export const routes: RouteObject[] = [
   {
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
       { path: 'quest-map-demo', element: <StepByStepQuestMap /> },
       { path: 'universe', element: <HackathonUniverseSystem /> },
       { path: 'search', element: <SearchInterface /> },
+      { path: 'performance', element: <PerformanceDemo /> },
       { path: '3d-test', element: <Simple3DTest /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'teams', element: <Teams /> },
