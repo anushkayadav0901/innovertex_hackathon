@@ -100,7 +100,7 @@ export default function LineChart({ data, title, height = 300 }: LineChartProps)
       x: {
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
-          drawBorder: false
+          borderColor: 'transparent'
         },
         ticks: {
           color: '#94a3b8',
@@ -113,7 +113,7 @@ export default function LineChart({ data, title, height = 300 }: LineChartProps)
       y: {
         grid: {
           color: 'rgba(255, 255, 255, 0.1)',
-          drawBorder: false
+          borderColor: 'transparent'
         },
         ticks: {
           color: '#94a3b8',

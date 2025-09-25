@@ -5,6 +5,7 @@ export interface User {
   name: string
   email: string
   role: Role
+  avatar?: string
   avatarUrl?: string
   badges?: string[]
   linkedinUrl?: string
