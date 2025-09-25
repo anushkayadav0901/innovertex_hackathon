@@ -8,10 +8,16 @@ import LineChart from '@/components/dashboard/LineChart'
 import ProgressRing from '@/components/dashboard/ProgressRing'
 import CalendarWidget from '@/components/dashboard/CalendarWidget'
 import NotificationCards from '@/components/dashboard/NotificationCards'
+import JudgeHub from './JudgeHub'
 
 export default function Dashboard() {
   const currentUserId = useStore(s => s.session.currentUserId)
   const user = useStore(s => currentUserId ? s.users[currentUserId] : undefined)
+
+  // Show enhanced dashboard only for judges; others see the original generic dashboard
+  if (user?.role === 'judge') {
+    return <JudgeHub />
+  }
 
   const stats = [
     { 

@@ -7,6 +7,9 @@ export interface User {
   role: Role
   avatarUrl?: string
   badges?: string[]
+  linkedinUrl?: string
+  bio?: string
+  expertise?: string[]
 }
 
 export interface SessionState {
@@ -23,6 +26,9 @@ export interface Hackathon {
   prize: string
   description: string
   criteria: { id: string; label: string; max: number }[]
+  // Optional timeline fields for categorizing into active/past/upcoming
+  startAt?: number // epoch ms
+  endAt?: number // epoch ms
 }
 
 export interface Team {
@@ -76,5 +82,32 @@ export interface Question {
   authorId: string
   text: string
   answer?: { authorId: string; text: string; createdAt: number }
+  createdAt: number
+}
+
+export interface JudgeChat {
+  id: string
+  hackathonId: string
+  senderId: string
+  receiverId?: string // if undefined, it's a group message
+  message: string
+  createdAt: number
+}
+
+export interface TeamFeedback {
+  id: string
+  hackathonId: string
+  teamId: string
+  judgeId: string
+  feedback: string
+  isPublic: boolean
+  createdAt: number
+}
+
+export interface JudgeApplication {
+  id: string
+  hackathonId: string
+  userId: string
+  status: 'pending' | 'approved' | 'rejected'
   createdAt: number
 }

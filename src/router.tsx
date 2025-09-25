@@ -16,6 +16,7 @@ import Gamify from './pages/Gamify'
 import Gallery from './pages/Gallery'
 import Teams from './pages/Teams'
 import Community from './pages/Community'
+import JudgeDashboard from './pages/Dashboard/JudgeDashboard'
 
 export const routes: RouteObject[] = [
   {
@@ -40,6 +41,11 @@ export const routes: RouteObject[] = [
       { path: 'evaluate/:submissionId', element: (
           <RequireAuth>
             <EvaluateSubmission />
+          </RequireAuth>
+        ) },
+      { path: 'judge/:hackathonId', element: (
+          <RequireAuth>
+            <JudgeDashboard />
           </RequireAuth>
         ) },
       { path: 'leaderboard', element: <Leaderboard /> },
