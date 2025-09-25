@@ -46,7 +46,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#6366f1',
     description: 'Premier AI/ML hackathon focusing on innovation',
     participantCount: 500,
-    prizePool: '$50,000'
+    prizePool: '₹42,00,000'
   },
   {
     id: 'web3-summit',
@@ -60,7 +60,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#8b5cf6',
     description: 'Decentralized future building hackathon',
     participantCount: 300,
-    prizePool: '$30,000'
+    prizePool: '₹25,20,000'
   },
   {
     id: 'green-tech-challenge',
@@ -74,7 +74,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#10b981',
     description: 'Building solutions for environmental challenges',
     participantCount: 250,
-    prizePool: '$25,000'
+    prizePool: '₹21,00,000'
   },
   {
     id: 'fintech-revolution',
@@ -88,7 +88,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#f59e0b',
     description: 'Revolutionizing financial services',
     participantCount: 400,
-    prizePool: '$40,000'
+    prizePool: '₹33,60,000'
   },
   {
     id: 'health-hack',
@@ -102,7 +102,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#ef4444',
     description: 'Healthcare innovation for better lives',
     participantCount: 350,
-    prizePool: '$35,000'
+    prizePool: '₹29,40,000'
   },
   {
     id: 'game-dev-jam',
@@ -116,7 +116,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#ec4899',
     description: 'Create the next gaming sensation',
     participantCount: 200,
-    prizePool: '$20,000'
+    prizePool: '₹16,80,000'
   },
   {
     id: 'iot-connect',
@@ -130,7 +130,7 @@ const SAMPLE_HACKATHONS: Hackathon[] = [
     color: '#06b6d4',
     description: 'Connecting the world through IoT',
     participantCount: 280,
-    prizePool: '$28,000'
+    prizePool: '₹23,52,000'
   }
 ];
 

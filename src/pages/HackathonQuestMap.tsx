@@ -21,7 +21,10 @@ import JudgeWalkingMode from '../components/JudgeWalkingMode';
 import TeamProgressTrail from '../components/TeamProgressTrail';
 import CompetitiveLeaderboard from '../components/CompetitiveLeaderboard';
 import JudgeEvaluationPanel from '../components/JudgeEvaluationPanel';
+import InteractiveStage from '../components/InteractiveStage';
+import StageDetailModal from '../components/StageDetailModal';
 import { useQuestMapData, type Stage, type Team } from '../hooks/useQuestMapData';
+import { STAGE_DATA, getStageInfo } from '../data/stageData';
 
 // Stage Components
 const RegistrationGate: React.FC<{ position: [number, number, number] }> = ({ position }) => {
@@ -298,6 +301,7 @@ const HackathonQuestMap: React.FC = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [showTrails, setShowTrails] = useState(true);
   const [judgeEvaluating, setJudgeEvaluating] = useState<Team | null>(null);
+  const [selectedStageDetail, setSelectedStageDetail] = useState<any>(null);
   
   const { 
     stages, 
@@ -339,22 +343,43 @@ const HackathonQuestMap: React.FC = () => {
         {/* Quest Path */}
         <QuestPath stages={stages} />
         
-        {/* Stages */}
-        {stages.map((stage: Stage) => {
+        {/* Interactive Stages with Tooltips */}
+        {stages.map((stage: Stage, index) => {
+          const stageInfo = getStageInfo(index);
+          if (!stageInfo) return null;
+
+          let StageComponent;
           switch (stage.type) {
             case 'gate':
-              return <RegistrationGate key={stage.id} position={stage.position} />;
+              StageComponent = <RegistrationGate position={[0, 0, 0]} />;
+              break;
             case 'valley':
-              return <IdeaValley key={stage.id} position={stage.position} />;
+              StageComponent = <IdeaValley position={[0, 0, 0]} />;
+              break;
             case 'tower':
-              return <PrototypeTower key={stage.id} position={stage.position} />;
+              StageComponent = <PrototypeTower position={[0, 0, 0]} />;
+              break;
             case 'arena':
-              return <PitchArena key={stage.id} position={stage.position} />;
+              StageComponent = <PitchArena position={[0, 0, 0]} />;
+              break;
             case 'podium':
-              return <WinnersPodium key={stage.id} position={stage.position} teams={teams} />;
+              StageComponent = <WinnersPodium position={[0, 0, 0]} teams={teams} />;
+              break;
             default:
               return null;
           }
+
+          return (
+            <InteractiveStage
+              key={stage.id}
+              stageInfo={stageInfo}
+              position={stage.position}
+              isJudgeMode={judgeWalkingMode}
+              onLearnMore={() => setSelectedStageDetail(stageInfo)}
+            >
+              {StageComponent}
+            </InteractiveStage>
+          );
         })}
         
         {/* Stage Labels */}
@@ -422,6 +447,16 @@ const HackathonQuestMap: React.FC = () => {
         <p className="text-sm opacity-80">Epic journey • Live competition • Judge walkthrough</p>
         <div className="mt-2 text-xs opacity-60">
           {teams.length} teams • {stages.length} stages • {teams.filter(t => t.stageIndex >= stages.length - 1).length} finished
+        </div>
+        
+        {/* Interactive Help */}
+        <div className="mt-3 text-xs bg-blue-900/30 p-2 rounded border border-blue-700/30">
+          <p className="text-blue-200">
+            💡 <strong>Hover stages</strong> for quick info • <strong>Click "Learn More"</strong> for details
+          </p>
+          <p className="text-blue-300 mt-1">
+            📱 On mobile: <strong>Tap stages</strong> to show tooltips
+          </p>
         </div>
         
         {/* Control Buttons */}
@@ -509,6 +544,14 @@ const HackathonQuestMap: React.FC = () => {
           setSelectedTeam(null);
         }}
         onEvaluate={handleJudgeEvaluation}
+      />
+
+      {/* Stage Detail Modal */}
+      <StageDetailModal
+        stageInfo={selectedStageDetail}
+        isOpen={!!selectedStageDetail}
+        onClose={() => setSelectedStageDetail(null)}
+        isJudgeMode={judgeWalkingMode}
       />
     </div>
   );

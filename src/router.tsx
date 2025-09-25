@@ -23,6 +23,7 @@ import Simple3DTest from './components/Simple3DTest'
 import SimpleQuestMap from './pages/SimpleQuestMap'
 import StepByStepQuestMap from './pages/StepByStepQuestMap'
 import HackathonUniverseSystem from './pages/HackathonUniverseSystem'
+import SearchInterface from './components/SearchInterface'
 
 export const routes: RouteObject[] = [
   {
@@ -62,6 +63,7 @@ export const routes: RouteObject[] = [
       { path: 'quest-map-simple', element: <SimpleQuestMap /> },
       { path: 'quest-map-demo', element: <StepByStepQuestMap /> },
       { path: 'universe', element: <HackathonUniverseSystem /> },
+      { path: 'search', element: <SearchInterface /> },
       { path: '3d-test', element: <Simple3DTest /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'teams', element: <Teams /> },
