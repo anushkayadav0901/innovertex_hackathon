@@ -2,7 +2,6 @@ import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useStore } from '@/store/useStore'
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Snackbar, Alert } from '@mui/material'
 import { Calendar, Clock, Users, Target, CheckCircle2 } from 'lucide-react'
 import EnhancedTeamBuilderModal from '@/components/team/EnhancedTeamBuilderModal'
 import TeamMatchingResults from '@/components/team/TeamMatchingResults'
@@ -35,7 +34,7 @@ export default function HackathonDetail() {
   const mentorRequests = useStore(s => s.mentorRequests)
   const currentUserId = useStore(s => s.session.currentUserId)
   const [teamName, setTeamName] = useState('')
-  // MUI dialogs state
+  // Local modal + toast state
   const [inviteOpen, setInviteOpen] = useState(false)
   const [buildOpen, setBuildOpen] = useState(false)
   const [inviteLink, setInviteLink] = useState('')
@@ -92,41 +91,64 @@ export default function HackathonDetail() {
           {hack?.tags.map(t => <span key={t} className="badge">{t}</span>)}
         </div>
 
-      {/* Invite via Link Dialog */}
-      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Invite via Link</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField label="Invite Link" value={inviteLink} InputProps={{ readOnly: true }} fullWidth />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCopy}>Copy</Button>
-          <Button onClick={() => setInviteOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Invite via Link Modal (no external UI lib) */}
+      {inviteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-md rounded-xl border border-white/10 bg-slate-900 p-4">
+            <div className="text-lg font-semibold text-slate-100">Invite via Link</div>
+            <div className="mt-3 space-y-2">
+              <label className="text-xs text-slate-400">Invite Link</label>
+              <input value={inviteLink} readOnly className="input w-full" />
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="btn-primary bg-white/10 hover:bg-white/20" onClick={handleCopy}>Copy</button>
+              <button className="btn-primary" onClick={() => setInviteOpen(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Build Team Dialog */}
-      <Dialog open={buildOpen} onClose={() => setBuildOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Desired Teammate Traits</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 0.5 }}>
-            <TextField label="Creativity" value={traits.creativity} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, creativity: e.target.value}))} fullWidth multiline minRows={2} />
-            <TextField label="Teamwork" value={traits.teamwork} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, teamwork: e.target.value}))} fullWidth multiline minRows={2} />
-            <TextField label="Communication" value={traits.communication} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, communication: e.target.value}))} fullWidth multiline minRows={2} />
-            <TextField label="Problem Solving" value={traits.problemSolving} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, problemSolving: e.target.value}))} fullWidth multiline minRows={2} />
-            <TextField label="Adaptability" value={traits.adaptability} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, adaptability: e.target.value}))} fullWidth multiline minRows={2} />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setBuildOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleBuildSubmit}>Submit</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Build Team Modal */}
+      {buildOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-lg rounded-xl border border-white/10 bg-slate-900 p-4">
+            <div className="text-lg font-semibold text-slate-100">Desired Teammate Traits</div>
+            <div className="mt-3 grid gap-3">
+              <div>
+                <label className="text-xs text-slate-400">Creativity</label>
+                <textarea className="input w-full min-h-[64px]" value={traits.creativity} onChange={(e)=>setTraits(t=>({...t, creativity: (e.target as HTMLTextAreaElement).value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400">Teamwork</label>
+                <textarea className="input w-full min-h-[64px]" value={traits.teamwork} onChange={(e)=>setTraits(t=>({...t, teamwork: (e.target as HTMLTextAreaElement).value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400">Communication</label>
+                <textarea className="input w-full min-h-[64px]" value={traits.communication} onChange={(e)=>setTraits(t=>({...t, communication: (e.target as HTMLTextAreaElement).value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400">Problem Solving</label>
+                <textarea className="input w-full min-h-[64px]" value={traits.problemSolving} onChange={(e)=>setTraits(t=>({...t, problemSolving: (e.target as HTMLTextAreaElement).value}))} />
+              </div>
+              <div>
+                <label className="text-xs text-slate-400">Adaptability</label>
+                <textarea className="input w-full min-h-[64px]" value={traits.adaptability} onChange={(e)=>setTraits(t=>({...t, adaptability: (e.target as HTMLTextAreaElement).value}))} />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="btn-primary bg-white/10 hover:bg-white/20" onClick={() => setBuildOpen(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleBuildSubmit}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar open={copyToast} autoHideDuration={2000} onClose={() => setCopyToast(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="success" variant="filled" sx={{ width: '100%' }}>Link copied</Alert>
-      </Snackbar>
+      {/* Simple toast */}
+      {copyToast && (
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-emerald-900/40 px-3 py-2 text-sm text-emerald-200 shadow" onAnimationEnd={() => setTimeout(()=>setCopyToast(false), 1500)}>
+          Link copied
+        </div>
+      )}
 
       {/* Enhanced Team Builder Modal */}
       <EnhancedTeamBuilderModal
@@ -194,22 +216,10 @@ export default function HackathonDetail() {
                 </div>
                 {/* Actions below Team Name */}
                 <div className="mt-3">
-                  <Stack direction="row" spacing={1}>
-                    <Button variant="outlined" size="small" onClick={handleInvite}>Invite via Link</Button>
-                    <Button 
-                      variant="contained" 
-                      size="small" 
-                      onClick={() => setShowEnhancedModal(true)}
-                      sx={{ 
-                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
-                        }
-                      }}
-                    >
-                      Build Team
-                    </Button>
-                  </Stack>
+                  <div className="flex gap-2">
+                    <button className="btn-primary bg-white/10 hover:bg-white/20" onClick={handleInvite}>Invite via Link</button>
+                    <button className="btn-primary" onClick={() => setShowEnhancedModal(true)}>Build Team</button>
+                  </div>
                 </div>
               </div>
               <div className="card p-4">
