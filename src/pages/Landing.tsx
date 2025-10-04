@@ -1,9 +1,82 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Github, Figma, FileStack, Sparkles, Rocket, Users, Trophy } from 'lucide-react'
+import { Github, Figma, FileStack, Sparkles, Rocket, Users, Trophy, Calendar, Clock, DollarSign, ArrowDown } from 'lucide-react'
 import { motion } from 'framer-motion'
 
+// Sample hackathon data
+const upcomingHackathons = [
+  {
+    id: 1,
+    name: "AI Innovation Challenge 2024",
+    description: "Build the next generation of AI-powered applications that solve real-world problems.",
+    tags: ["AI", "Machine Learning", "Innovation"],
+    timeLeft: "6 days left",
+    prize: "$50,000",
+    participants: 1250,
+    difficulty: "Advanced"
+  },
+  {
+    id: 2,
+    name: "Blockchain for Good",
+    description: "Create blockchain solutions that make a positive impact on society and environment.",
+    tags: ["Blockchain", "Sustainability", "Social Impact"],
+    timeLeft: "12 days left", 
+    prize: "$25,000",
+    participants: 890,
+    difficulty: "Intermediate"
+  },
+  {
+    id: 3,
+    name: "FinTech Revolution",
+    description: "Revolutionize financial services with cutting-edge technology and user experience.",
+    tags: ["FinTech", "Banking", "UX/UI"],
+    timeLeft: "18 days left",
+    prize: "$75,000",
+    participants: 2100,
+    difficulty: "Advanced"
+  },
+  {
+    id: 4,
+    name: "HealthTech Innovations",
+    description: "Develop healthcare solutions that improve patient outcomes and accessibility.",
+    tags: ["HealthTech", "Medical", "Accessibility"],
+    timeLeft: "3 days left",
+    prize: "$40,000",
+    participants: 750,
+    difficulty: "Beginner"
+  },
+  {
+    id: 5,
+    name: "Climate Action Hackathon",
+    description: "Build technology solutions to combat climate change and promote sustainability.",
+    tags: ["Climate", "Environment", "Green Tech"],
+    timeLeft: "25 days left",
+    prize: "$60,000",
+    participants: 1500,
+    difficulty: "Intermediate"
+  },
+  {
+    id: 6,
+    name: "EdTech Future",
+    description: "Transform education through innovative technology and learning experiences.",
+    tags: ["EdTech", "Learning", "Innovation"],
+    timeLeft: "9 days left",
+    prize: "$35,000",
+    participants: 980,
+    difficulty: "Beginner"
+  }
+];
+
 export default function Landing() {
+  const hackathonGridRef = useRef<HTMLElement>(null);
+
+  const scrollToHackathons = () => {
+    hackathonGridRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+
   return (
     <div className="space-y-0">
       {/* Hero Section */}
@@ -14,24 +87,50 @@ export default function Landing() {
           <div className="absolute bottom-20 right-20 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
         
-        {/* Floating shapes */}
+        {/* Hackathon Animation Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {/* Coding symbols floating animation */}
+          {Array.from({ length: 8 }).map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-4 h-4 border border-white/20 rotate-45"
+              className="absolute text-2xl opacity-20"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                rotate: [45, 405],
-                scale: [1, 1.2, 1],
-                opacity: [0.3, 0.8, 0.3]
+                y: [-20, 20, -20],
+                rotate: [0, 360],
+                opacity: [0.1, 0.3, 0.1]
               }}
               transition={{
-                duration: 4 + i,
+                duration: 6 + i * 0.5,
                 repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              {['💻', '🚀', '⚡', '🔥', '💡', '🎯', '⭐', '🏆'][i]}
+            </motion.div>
+          ))}
+          
+          {/* Circuit-like lines */}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <motion.div
+              key={`line-${i}`}
+              className="absolute h-px bg-gradient-to-r from-transparent via-brand-500/30 to-transparent"
+              style={{
+                left: `${i * 25}%`,
+                top: `${20 + i * 20}%`,
+                width: '200px',
+              }}
+              animate={{
+                opacity: [0, 1, 0],
+                scaleX: [0, 1, 0]
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                delay: i * 0.5,
                 ease: "easeInOut"
               }}
             />
@@ -45,21 +144,23 @@ export default function Landing() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-            <h1 className="text-5xl md:text-7xl font-black mb-6 bg-gradient-to-r from-brand-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              BUILD THE FUTURE
+            <h1 className="text-6xl md:text-8xl font-black mb-6 bg-gradient-to-r from-brand-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Build. Compete. Innovate.
             </h1>
             <p className="text-xl md:text-2xl text-slate-300 mb-8 max-w-3xl mx-auto">
-              Join the most innovative hackathon platform where creativity meets technology. 
-              Build, compete, and shape the future together.
+              Join global hackathons and shape the future with code.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to="/discover" className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2">
-                  <Rocket className="w-5 h-5" />
-                  Start Building
-                </Link>
-              </motion.div>
+              <motion.button
+                onClick={scrollToHackathons}
+                className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ArrowDown className="w-5 h-5" />
+                Explore Hackathons
+              </motion.button>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/signup" className="btn-primary bg-white/10 hover:bg-white/20 text-lg px-8 py-4 inline-flex items-center gap-2">
                   <Users className="w-5 h-5" />
@@ -109,6 +210,127 @@ export default function Landing() {
             />
           </div>
         </motion.div>
+      </section>
+
+      {/* Upcoming Hackathons Section */}
+      <section ref={hackathonGridRef} className="py-20 px-4 bg-slate-900/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold text-white mb-4"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              Upcoming Hackathons
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-slate-300 max-w-3xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              Join thousands of developers in these exciting challenges
+            </motion.p>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {upcomingHackathons.map((hackathon, index) => (
+              <motion.div
+                key={hackathon.id}
+                className="card p-6 group hover:scale-105 transition-all duration-300 border border-slate-700/50 hover:border-brand-500/50"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-brand-400 transition-colors">
+                      {hackathon.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
+                      <Clock className="w-4 h-4" />
+                      <span className={`font-medium ${
+                        hackathon.timeLeft.includes('3 days') ? 'text-red-400' :
+                        hackathon.timeLeft.includes('6 days') ? 'text-orange-400' :
+                        'text-green-400'
+                      }`}>
+                        {hackathon.timeLeft}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    hackathon.difficulty === 'Beginner' ? 'bg-green-500/20 text-green-400' :
+                    hackathon.difficulty === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {hackathon.difficulty}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-slate-300 text-sm mb-4 line-clamp-3">
+                  {hackathon.description}
+                </p>
+
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {hackathon.tags.map((tag, tagIndex) => (
+                    <span
+                      key={tagIndex}
+                      className="px-2 py-1 bg-brand-500/20 text-brand-400 text-xs rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center justify-between mb-6 text-sm text-slate-400">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    <span>{hackathon.participants.toLocaleString()} participants</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-400 font-semibold">
+                    <DollarSign className="w-4 h-4" />
+                    <span>{hackathon.prize}</span>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <motion.button
+                  className="w-full btn-primary py-3 text-sm font-medium"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  View Details
+                </motion.button>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* View All Button */}
+          <motion.div 
+            className="text-center mt-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <Link 
+              to="/discover"
+              className="btn-primary bg-white/10 hover:bg-white/20 text-lg px-8 py-4 inline-flex items-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              View All Hackathons
+            </Link>
+          </motion.div>
+        </div>
       </section>
 
       {/* Features Section */}
