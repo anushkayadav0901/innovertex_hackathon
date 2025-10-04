@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { 
   OrbitControls, 
@@ -23,6 +23,7 @@ import CompetitiveLeaderboard from '../components/CompetitiveLeaderboard';
 import JudgeEvaluationPanel from '../components/JudgeEvaluationPanel';
 import InteractiveStage from '../components/InteractiveStage';
 import StageDetailModal from '../components/StageDetailModal';
+import SimpleStageTooltip from '../components/SimpleStageTooltip';
 import { useQuestMapData, type Stage, type Team } from '../hooks/useQuestMapData';
 import { STAGE_DATA, getStageInfo } from '../data/stageData';
 
@@ -303,6 +304,67 @@ const HackathonQuestMap: React.FC = () => {
   const [judgeEvaluating, setJudgeEvaluating] = useState<Team | null>(null);
   const [selectedStageDetail, setSelectedStageDetail] = useState<any>(null);
   
+  // Simple tooltip system using mouse position
+  const [tooltipState, setTooltipState] = useState<{
+    isVisible: boolean;
+    stageInfo: any;
+    mousePosition: { x: number; y: number };
+  }>({
+    isVisible: false,
+    stageInfo: null,
+    mousePosition: { x: 0, y: 0 }
+  });
+
+  // Track mouse position for tooltip placement
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const showTooltip = useCallback((stageInfo: any, position: [number, number, number]) => {
+    // Clear any existing timeout
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+
+    setTooltipState({
+      isVisible: true,
+      stageInfo,
+      mousePosition: mousePosition
+    });
+  }, [mousePosition]);
+
+  const hideTooltip = useCallback(() => {
+    // Clear any existing timeout
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+
+    // Add small delay to prevent rapid flickering
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setTooltipState(prev => ({
+        ...prev,
+        isVisible: false
+      }));
+    }, 100);
+  }, []);
+
+  // Cleanup tooltip timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, []);
+  
   const { 
     stages, 
     teams, 
@@ -376,6 +438,8 @@ const HackathonQuestMap: React.FC = () => {
               position={stage.position}
               isJudgeMode={judgeWalkingMode}
               onLearnMore={() => setSelectedStageDetail(stageInfo)}
+              onHoverStart={(stageInfo, position) => showTooltip(stageInfo, position)}
+              onHoverEnd={hideTooltip}
             >
               {StageComponent}
             </InteractiveStage>
@@ -552,6 +616,20 @@ const HackathonQuestMap: React.FC = () => {
         isOpen={!!selectedStageDetail}
         onClose={() => setSelectedStageDetail(null)}
         isJudgeMode={judgeWalkingMode}
+      />
+
+      {/* Simple Stage Tooltip */}
+      <SimpleStageTooltip
+        stageInfo={tooltipState.stageInfo}
+        isVisible={tooltipState.isVisible}
+        isJudgeMode={judgeWalkingMode}
+        onLearnMore={() => {
+          if (tooltipState.stageInfo) {
+            setSelectedStageDetail(tooltipState.stageInfo);
+            hideTooltip();
+          }
+        }}
+        position={tooltipState.mousePosition}
       />
     </div>
   );

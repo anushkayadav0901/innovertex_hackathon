@@ -45,6 +45,7 @@ export default function Signup() {
             <option value="participant">Participant</option>
             <option value="organizer">Organizer</option>
             <option value="judge">Judge</option>
+            <option value="mentor">Mentor</option>
           </select>
         </div>
         <button className="btn-primary w-full" type="submit">Sign up</button>

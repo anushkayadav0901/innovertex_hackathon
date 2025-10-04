@@ -2,15 +2,37 @@ import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useStore } from '@/store/useStore'
-import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Grid, Snackbar, Alert } from '@mui/material'
-import EnhancedTeamBuilderModal, { TeamCriteria } from '@/components/team/EnhancedTeamBuilderModal'
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Snackbar, Alert } from '@mui/material'
+import { Calendar, Clock, Users, Target, CheckCircle2 } from 'lucide-react'
+import EnhancedTeamBuilderModal from '@/components/team/EnhancedTeamBuilderModal'
 import TeamMatchingResults from '@/components/team/TeamMatchingResults'
 import { findMatchingMembers } from '@/data/teamMembersData'
+
+// Define TeamCriteria interface to match the one in EnhancedTeamBuilderModal
+interface TeamCriteria {
+  personalityTraits: {
+    creativity: 'low' | 'moderate' | 'high' | null
+    leadership: 'low' | 'moderate' | 'high' | null
+    teamwork: 'low' | 'moderate' | 'high' | null
+    organization: 'low' | 'moderate' | 'high' | null
+    problemSolving: 'low' | 'moderate' | 'high' | null
+    adaptability: 'low' | 'moderate' | 'high' | null
+  }
+  techStack: {
+    required: string[]
+    preferred: string[]
+    experience: 'junior' | 'mid' | 'senior' | 'any'
+  }
+  availability: 'full-time' | 'part-time' | 'any'
+  location: 'remote' | 'onsite' | 'hybrid' | 'any'
+}
 
 export default function HackathonDetail() {
   const { id } = useParams()
   const hack = useStore(s => (id ? s.hackathons[id] : undefined))
   const registerTeam = useStore(s => s.registerTeam)
+  const currentUser = useStore(s => s.session.currentUserId ? s.users[s.session.currentUserId] : undefined)
+  const mentorRequests = useStore(s => s.mentorRequests)
   const currentUserId = useStore(s => s.session.currentUserId)
   const [teamName, setTeamName] = useState('')
   // MUI dialogs state
@@ -88,13 +110,13 @@ export default function HackathonDetail() {
       <Dialog open={buildOpen} onClose={() => setBuildOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Desired Teammate Traits</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 0.5 }}>
-            <Grid item xs={12}><TextField label="Creativity" value={traits.creativity} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, creativity: e.target.value}))} fullWidth multiline minRows={2} /></Grid>
-            <Grid item xs={12}><TextField label="Teamwork" value={traits.teamwork} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, teamwork: e.target.value}))} fullWidth multiline minRows={2} /></Grid>
-            <Grid item xs={12}><TextField label="Communication" value={traits.communication} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, communication: e.target.value}))} fullWidth multiline minRows={2} /></Grid>
-            <Grid item xs={12}><TextField label="Problem Solving" value={traits.problemSolving} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, problemSolving: e.target.value}))} fullWidth multiline minRows={2} /></Grid>
-            <Grid item xs={12}><TextField label="Adaptability" value={traits.adaptability} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, adaptability: e.target.value}))} fullWidth multiline minRows={2} /></Grid>
-          </Grid>
+          <Stack spacing={2} sx={{ mt: 0.5 }}>
+            <TextField label="Creativity" value={traits.creativity} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, creativity: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Teamwork" value={traits.teamwork} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, teamwork: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Communication" value={traits.communication} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, communication: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Problem Solving" value={traits.problemSolving} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, problemSolving: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Adaptability" value={traits.adaptability} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, adaptability: e.target.value}))} fullWidth multiline minRows={2} />
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setBuildOpen(false)}>Cancel</Button>
@@ -123,56 +145,86 @@ export default function HackathonDetail() {
         />
       )}
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="card p-4">
-            <h4 className="font-semibold">Register your team</h4>
-            <div className="mt-2 flex gap-2">
-              <input className="input" placeholder="Team Name" value={teamName} onChange={e => setTeamName(e.target.value)} />
-              <button className="btn-primary" onClick={() => {
-                if (!id) return
-                if (!currentUserId) {
-                  alert('Please login to register')
-                  return
-                }
-                if (!teamName.trim()) {
-                  alert('Enter a team name')
-                  return
-                }
-                const teamId = registerTeam(id, teamName.trim())
-                alert('Team registered! Now go to Submission Portal from Dashboard.')
-                setTeamName('')
-              }}>Register</button>
-            </div>
-            {/* Actions below Team Name */}
-            <div className="mt-3">
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small" onClick={handleInvite}>Invite via Link</Button>
-                <Button 
-                  variant="contained" 
-                  size="small" 
-                  onClick={() => setShowEnhancedModal(true)}
-                  sx={{ 
-                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                    '&:hover': {
-                      background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+          {currentUser?.role === 'mentor' ? (
+            <>
+              <div className="card p-4">
+                <h4 className="font-semibold flex items-center gap-2"><Calendar className="h-4 w-4"/>Rounds & Schedule</h4>
+                <ul className="mt-2 space-y-2 text-sm text-slate-300">
+                  <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-emerald-300"/> Day 1: Ideation & Team Check-ins</li>
+                  <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-emerald-300"/> Day 2: Build & Midway Demos</li>
+                  <li className="flex items-center gap-2"><Clock className="h-4 w-4 text-emerald-300"/> Day 3: Final Submission & Presentations</li>
+                </ul>
+                <div className="mt-3 text-xs text-slate-400">Note: Mentors are expected to be present during check-ins and demo windows.</div>
+              </div>
+              <div className="card p-4">
+                <h4 className="font-semibold flex items-center gap-2"><Users className="h-4 w-4"/>Mentoring Info</h4>
+                <ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
+                  <li>Assist teams via the Mentor Dashboard Help Requests.</li>
+                  <li>Share resources and guidance in Chat & Support.</li>
+                  <li>Mark requests as resolved once addressed.</li>
+                </ul>
+                {currentUser && (()=>{
+                  const myReq = Object.values(mentorRequests).find(r => r.hackathonId === id && r.mentorId === currentUser.id)
+                  return myReq?.status === 'accepted' ? (
+                    <div className="mt-3 inline-flex items-center gap-2 text-emerald-300 text-sm"><CheckCircle2 className="h-4 w-4"/>You are assigned as a mentor</div>
+                  ) : null
+                })()}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="card p-4">
+                <h4 className="font-semibold">Register your team</h4>
+                <div className="mt-2 flex gap-2">
+                  <input className="input" placeholder="Team Name" value={teamName} onChange={e => setTeamName(e.target.value)} />
+                  <button className="btn-primary" onClick={() => {
+                    if (!id) return
+                    if (!currentUserId) {
+                      alert('Please login to register')
+                      return
                     }
-                  }}
-                >
-                  Build Team
-                </Button>
-              </Stack>
-            </div>
-          </div>
-          <div className="card p-4">
-            <h4 className="font-semibold">Judging Criteria</h4>
-            <ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
-              {hack?.criteria.map(c => (
-                <li key={c.id}>{c.label} (max {c.max})</li>
-              ))}
-            </ul>
-          </div>
+                    if (!teamName.trim()) {
+                      alert('Enter a team name')
+                      return
+                    }
+                    const teamId = registerTeam(id, teamName.trim())
+                    alert('Team registered! Now go to Submission Portal from Dashboard.')
+                    setTeamName('')
+                  }}>Register</button>
+                </div>
+                {/* Actions below Team Name */}
+                <div className="mt-3">
+                  <Stack direction="row" spacing={1}>
+                    <Button variant="outlined" size="small" onClick={handleInvite}>Invite via Link</Button>
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      onClick={() => setShowEnhancedModal(true)}
+                      sx={{ 
+                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                        '&:hover': {
+                          background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+                        }
+                      }}
+                    >
+                      Build Team
+                    </Button>
+                  </Stack>
+                </div>
+              </div>
+              <div className="card p-4">
+                <h4 className="font-semibold">Judging Criteria</h4>
+                <ul className="mt-2 list-disc pl-5 text-sm text-slate-300">
+                  {hack?.criteria.map(c => (
+                    <li key={c.id}>{c.label} (max {c.max})</li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
-        <div className="mt-4 flex gap-3">
-          <Link to="/discover" className="btn-primary bg-white/10 hover:bg-white/20">Back to Discover</Link>
+        <div className="mt-4">
+          <Link to="/discover" className="btn-primary">Back</Link>
         </div>
       </div>
     </div>

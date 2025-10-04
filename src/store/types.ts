@@ -1,4 +1,4 @@
-export type Role = 'participant' | 'organizer' | 'judge'
+export type Role = 'participant' | 'organizer' | 'judge' | 'mentor'
 
 export interface User {
   id: string
@@ -105,10 +105,67 @@ export interface TeamFeedback {
   createdAt: number
 }
 
+export interface BeginnerModeState {
+  isBeginnerMode: boolean
+  currentTourStep: number
+  completedTours: string[]
+  showTooltips: boolean
+}
+
 export interface JudgeApplication {
   id: string
   hackathonId: string
   userId: string
   status: 'pending' | 'approved' | 'rejected'
   createdAt: number
+}
+
+export interface HelpRequest {
+  id: string
+  teamId: string
+  hackathonId: string
+  message: string
+  priority: 'urgent' | 'normal'
+  status: 'pending' | 'resolved'
+  assignedMentorId?: string
+  createdAt: number
+  resolvedAt?: number
+}
+
+export interface MentorActivity {
+  id: string
+  mentorId: string
+  teamId: string
+  hackathonId: string
+  type: 'chat' | 'feedback' | 'resolved_request'
+  note: string
+  createdAt: number
+}
+
+// Mentors can request to be assigned to a hackathon
+export interface MentorRequest {
+  id: string
+  hackathonId: string
+  mentorId: string
+  status: 'pending' | 'accepted' | 'declined'
+  message?: string
+  createdAt: number
+  decidedAt?: number
+}
+
+// Food coupon system types
+export interface FoodCouponWindow {
+  hackathonId: string
+  startAt: number
+  endAt: number
+  // lazily generated tokens per participant userId
+  tokens: Record<string, string>
+}
+
+export interface FoodRedemptionRecord {
+  token: string
+  hackathonId: string
+  teamId: string
+  userId: string
+  redeemedAt?: number // set when scanned
 }

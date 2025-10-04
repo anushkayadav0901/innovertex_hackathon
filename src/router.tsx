@@ -17,6 +17,7 @@ import Gallery from './pages/Gallery'
 import Teams from './pages/Teams'
 import Community from './pages/Community'
 import JudgeDashboard from './pages/Dashboard/JudgeDashboard'
+import MentorDashboard from './pages/Dashboard/MentorDashboard'
 import HackathonQuestMap from './pages/HackathonQuestMap'
 import EnhancedHackathonQuestMap from './pages/EnhancedHackathonQuestMap'
 import Simple3DTest from './components/Simple3DTest'
@@ -25,6 +26,8 @@ import StepByStepQuestMap from './pages/StepByStepQuestMap'
 import HackathonUniverseSystem from './pages/HackathonUniverseSystem'
 import SearchInterface from './components/SearchInterface'
 import PerformanceDemo from './pages/PerformanceDemo'
+import FoodScan from './pages/FoodScan'
+import ManageHackathon from './pages/Organizer/ManageHackathon'
 
 export const routes: RouteObject[] = [
   {
@@ -56,6 +59,16 @@ export const routes: RouteObject[] = [
             <JudgeDashboard />
           </RequireAuth>
         ) },
+      { path: 'mentor', element: (
+          <RequireAuth>
+            <MentorDashboard />
+          </RequireAuth>
+        ) },
+      { path: 'mentor/:hackathonId', element: (
+          <RequireAuth>
+            <MentorDashboard />
+          </RequireAuth>
+        ) },
       { path: 'leaderboard', element: <Leaderboard /> },
       { path: 'gamify', element: <Gamify /> },
       { path: 'quest-map', element: <HackathonUniverseSystem /> },
@@ -70,9 +83,15 @@ export const routes: RouteObject[] = [
       { path: 'gallery', element: <Gallery /> },
       { path: 'teams', element: <Teams /> },
       { path: 'community', element: <Community /> },
+      { path: 'food-scan', element: <FoodScan /> },
       { path: 'organizer/create', element: (
           <RequireAuth>
             <CreateHackathon />
+          </RequireAuth>
+        ) },
+      { path: 'organizer/manage/:id', element: (
+          <RequireAuth>
+            <ManageHackathon />
           </RequireAuth>
         ) },
       { path: 'comms/:id', element: <CommunicationHub /> },

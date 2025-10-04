@@ -33,7 +33,7 @@ const FeatureToggle: React.FC<{
       }`}
     >
       <div className="flex justify-between items-center">
-        <span className="font-semibold">{enabled ? '✅' : '❌'} {label}</span>
+        <span className="font-semibold">{label}</span>
         <span className="text-xs">{enabled ? 'ON' : 'OFF'}</span>
       </div>
     </button>
@@ -232,7 +232,7 @@ const StepByStepQuestMap: React.FC = () => {
       
       {/* Feature Control Panel */}
       <div className="absolute top-4 left-4 bg-black bg-opacity-80 text-white p-4 rounded-lg max-w-sm">
-        <h1 className="text-xl font-bold mb-4">🎮 Quest Map Features</h1>
+        <h1 className="text-xl font-bold mb-4">Quest Map Features</h1>
         <p className="text-sm mb-4 opacity-80">
           Toggle features ON/OFF to see what makes the enhanced version unique!
         </p>
@@ -288,7 +288,7 @@ const StepByStepQuestMap: React.FC = () => {
       
       {/* Instructions */}
       <div className="absolute bottom-4 right-4 bg-black bg-opacity-80 text-white p-4 rounded-lg max-w-sm">
-        <h3 className="font-bold mb-2">🎯 How to Explore</h3>
+        <h3 className="font-bold mb-2">How to Explore</h3>
         <ul className="text-sm space-y-1">
           <li>• <strong>Mouse drag</strong> - Rotate camera</li>
           <li>• <strong>Mouse wheel</strong> - Zoom in/out</li>

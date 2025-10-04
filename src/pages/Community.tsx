@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users, MessageCircle, Activity, TrendingUp } from 'lucide-react'
 import ChatInterface from '@/components/community/ChatInterface'
@@ -11,6 +11,7 @@ export default function Community() {
   const [activeTab, setActiveTab] = useState<'feed' | 'chat' | 'members'>('feed')
   const users = useStore(s => s.users)
   const currentUserId = useStore(s => s.session.currentUserId)
+  const me = useMemo(() => (currentUserId ? users[currentUserId] : undefined), [currentUserId, users])
 
   const tabs = [
     { id: 'feed', label: 'Activity Feed', icon: Activity },

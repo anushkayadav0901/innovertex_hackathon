@@ -86,111 +86,101 @@ export default function Navbar() {
     }
   }
 
+  const { isBeginnerMode } = useStore()
+
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-900/95">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2 text-lg font-bold">
           <Rocket className="h-6 w-6 text-brand-400" />
           <span>Innovortex</span>
         </Link>
-        <nav className="hidden gap-4 md:flex items-center">
-          <NavLink to="/discover" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Discover</NavLink>
-          
-          {/* Search Box */}
-          <div className="relative" ref={searchRef}>
-            <button
-              onClick={() => {
-                setIsSearchOpen(!isSearchOpen)
-                if (!isSearchOpen) {
-                  setTimeout(() => inputRef.current?.focus(), 100)
-                }
-              }}
-              className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 transition-all text-sm text-slate-400 hover:text-slate-200 min-w-[120px] lg:min-w-[180px]"
-            >
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline text-xs lg:text-sm">Search hackathons...</span>
-                <span className="sm:hidden text-xs">Search</span>
-              </div>
-              <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-white/10 rounded border border-white/20">
-                ⌘K
-              </kbd>
-            </button>
-
-            {/* Search Dropdown */}
-            {isSearchOpen && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
-                {/* Search Input */}
-                <div className="p-3 border-b border-gray-200 dark:border-gray-600">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Search hackathons, teams, projects..."
-                      className="w-full pl-10 pr-10 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
+        <nav className="hidden gap-4 md:flex items-center transition-all duration-300">
+          {/* Organizer-specific links */}
+          {user?.role === 'organizer' ? (
+            <>
+              <NavLink to="/organizer/create" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Create Hackathon</NavLink>
+              <NavLink to="/discover" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Active Hackathons</NavLink>
+              <NavLink to="/leaderboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Leaderboard</NavLink>
+              <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>
+            </>
+          ) : (
+            <>
+              <NavLink to="/discover" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Discover</NavLink>
+              {/* Search Box (hidden for organizers) */}
+              <div className="relative" ref={searchRef}>
+                <button
+                  onClick={() => {
+                    setIsSearchOpen(!isSearchOpen)
+                    if (!isSearchOpen) {
+                      setTimeout(() => inputRef.current?.focus(), 100)
+                    }
+                  }}
+                  className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 transition-all text-sm text-slate-400 hover:text-slate-200 min-w-[120px] lg:min-w-[180px]"
+                >
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline text-xs lg:text-sm">Search hackathons...</span>
+                    <span className="sm:hidden text-xs">Search</span>
                   </div>
-                </div>
-
-                {/* Suggestions */}
-                <div className="max-h-64 overflow-y-auto">
-                  {filteredSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
-                    >
-                      <span className="text-lg">{suggestion.icon}</span>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {suggestion.text}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                          {suggestion.type}
-                        </div>
+                  <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-white/10 rounded border border-white/20">
+                    ⌘K
+                  </kbd>
+                </button>
+                {isSearchOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="p-3 border-b border-gray-200 dark:border-gray-600">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Search hackathons, teams, projects..."
+                          className="w-full pl-10 pr-10 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                        {searchQuery && (
+                          <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Footer */}
-                <div className="p-2 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Press Enter to search</span>
-                    <button
-                      onClick={() => navigate('/search')}
-                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      Advanced Search →
-                    </button>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto">
+                      {filteredSuggestions.map((suggestion) => (
+                        <button key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+                          <span className="text-lg">{suggestion.icon}</span>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{suggestion.text}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">{suggestion.type}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-2 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Press Enter to search</span>
+                        <button onClick={() => navigate('/search')} className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">Advanced Search →</button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          <NavLink to="/teams" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Teams</NavLink>
-          <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
-          <NavLink to="/gallery" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gallery</NavLink>
-          <NavLink to="/gamify" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gamify</NavLink>
-          <NavLink to="/quest-map" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Quest Map</NavLink>
+              <NavLink to="/teams" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Teams</NavLink>
+              <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
+              <NavLink to="/gallery" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gallery</NavLink>
+              <NavLink to="/gamify" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gamify</NavLink>
+              <NavLink to="/quest-map" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Quest Map</NavLink>
+              <NavLink to="/leaderboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Leaderboard</NavLink>
+              <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>
+            </>
+          )}
+
           {user ? (
             <>
-              <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>
               <NotificationBell />
-              <span className="badge capitalize">{user.role}</span>
               <button onClick={logout} className="btn-primary bg-white/10 hover:bg-white/20">Logout</button>
             </>
           ) : (
@@ -204,16 +194,26 @@ export default function Navbar() {
           </button>
         </nav>
         <div className="flex items-center gap-2 md:hidden">
-          <button 
-            onClick={() => navigate('/search')}
-            className="flex items-center gap-1 px-2 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 transition-all text-slate-400 hover:text-slate-200"
-          >
-            <Search className="h-4 w-4"/>
-            <span className="text-xs">Search</span>
-          </button>
+          {user?.role !== 'organizer' && (
+            <button 
+              onClick={() => navigate('/search')}
+              className="flex items-center gap-1 px-2 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-white/20 transition-all text-slate-400 hover:text-slate-200"
+            >
+              <Search className="h-4 w-4"/>
+              <span className="text-xs">Search</span>
+            </button>
+          )}
           {user ? (
             <>
-              <Link to="/dashboard" className="btn-primary">Dashboard</Link>
+              {user.role === 'organizer' ? (
+                <>
+                  <Link to="/organizer/create" className="btn-primary">Create</Link>
+                  <Link to="/discover" className="btn-primary">Active</Link>
+                  <Link to="/dashboard" className="btn-primary">Dashboard</Link>
+                </>
+              ) : (
+                <Link to="/dashboard" className="btn-primary">Dashboard</Link>
+              )}
               <button onClick={logout} className="btn-primary bg-white/10 hover:bg-white/20">Logout</button>
             </>
           ) : (
