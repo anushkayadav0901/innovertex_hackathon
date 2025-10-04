@@ -274,7 +274,7 @@
   @apply inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-2 sm:px-4 font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-400;
 }
 .card {
-  @apply rounded-2xl backdrop-blur-md shadow-xl;
+  @apply rounded-2xl shadow-xl;
   background: var(--card-bg);
   border: 1px solid var(--card-border, rgba(255,255,255,0.1));
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -297,6 +297,19 @@
 
 .input::placeholder {
   color: var(--text-muted, #94a3b8);
+}
+
+/* Fix select dropdown options visibility */
+.input option {
+  background-color: white;
+  color: #1e293b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .input option {
+    background-color: #1e293b;
+    color: #f1f5f9;
+  }
 }
 .badge {
   @apply inline-flex items-center rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300 ring-1 ring-inset ring-brand-500/30;
@@ -438,15 +451,9 @@
   animation: neon 2.8s ease-in-out infinite;
 }
 
-/* Film grain overlay */
+/* Film grain overlay - removed for cleaner UI */
 .grain {
-  position: fixed;
-  pointer-events: none;
-  inset: 0;
-  z-index: 10;
-  opacity: 0.07;
-  mix-blend-mode: overlay;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.35"/></svg>');
+  display: none;
 }
 
 /* Project Gallery Styles */

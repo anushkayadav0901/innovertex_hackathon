@@ -17,6 +17,7 @@ import Gallery from './pages/Gallery'
 import Teams from './pages/Teams'
 import Community from './pages/Community'
 import JudgeDashboard from './pages/Dashboard/JudgeDashboard'
+import MentorDashboard from './pages/Dashboard/MentorDashboard'
 import HackathonQuestMap from './pages/HackathonQuestMap'
 import EnhancedHackathonQuestMap from './pages/EnhancedHackathonQuestMap'
 import Simple3DTest from './components/Simple3DTest'
@@ -54,6 +55,16 @@ export const routes: RouteObject[] = [
       { path: 'judge/:hackathonId', element: (
           <RequireAuth>
             <JudgeDashboard />
+          </RequireAuth>
+        ) },
+      { path: 'mentor', element: (
+          <RequireAuth>
+            <MentorDashboard />
+          </RequireAuth>
+        ) },
+      { path: 'mentor/:hackathonId', element: (
+          <RequireAuth>
+            <MentorDashboard />
           </RequireAuth>
         ) },
       { path: 'leaderboard', element: <Leaderboard /> },

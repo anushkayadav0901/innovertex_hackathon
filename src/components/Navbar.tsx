@@ -86,15 +86,17 @@ export default function Navbar() {
     }
   }
 
+  const { isBeginnerMode } = useStore()
+
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-900/95">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2 text-lg font-bold">
           <Rocket className="h-6 w-6 text-brand-400" />
           <span>Innovortex</span>
         </Link>
-        <nav className="hidden gap-4 md:flex items-center">
-          <NavLink to="/discover" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Discover</NavLink>
+        <nav className="hidden gap-4 md:flex items-center transition-all duration-300">
+          <NavLink to="/discover" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Find Hackathons</NavLink>
           
           {/* Search Box */}
           <div className="relative" ref={searchRef}>
@@ -181,11 +183,9 @@ export default function Navbar() {
             )}
           </div>
           
-          <NavLink to="/teams" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Teams</NavLink>
-          <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
-          <NavLink to="/gallery" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gallery</NavLink>
-          <NavLink to="/gamify" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gamify</NavLink>
-          <NavLink to="/quest-map" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Quest Map</NavLink>
+          {user?.role === 'mentor' && (
+            <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
+          )}
           {user ? (
             <>
               <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>

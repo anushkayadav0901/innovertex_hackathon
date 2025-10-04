@@ -1,9 +1,18 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { uid } from '@/utils/id'
-import type { User, SessionState, Hackathon, Team, Submission, Evaluation, Role, Announcement, FAQ, Question, JudgeChat, TeamFeedback, JudgeApplication } from './types'
+import type { User, SessionState, Hackathon, Team, Submission, Evaluation, Role, Announcement, FAQ, Question, JudgeChat, TeamFeedback, JudgeApplication, BeginnerModeState, HelpRequest, MentorActivity, MentorRequest } from './types'
 
-interface AppState {
+type SeedData = {
+  hackathons: Record<string, Hackathon>
+  users: Record<string, User>
+  teams: Record<string, Team>
+  submissions: Record<string, Submission>
+  helpRequests: Record<string, HelpRequest>
+  mentorRequests: Record<string, MentorRequest>
+}
+
+interface AppState extends BeginnerModeState {
   users: Record<string, User>
   session: SessionState
   hackathons: Record<string, Hackathon>
@@ -16,6 +25,9 @@ interface AppState {
   judgeChats: Record<string, JudgeChat>
   teamFeedbacks: Record<string, TeamFeedback>
   judgeApplications: Record<string, JudgeApplication>
+  helpRequests: Record<string, HelpRequest>
+  mentorActivities: Record<string, MentorActivity>
+  mentorRequests: Record<string, MentorRequest>
   // Auth
   login: (email: string) => void
   logout: () => void
@@ -35,9 +47,40 @@ interface AppState {
   sendJudgeMessage: (hackathonId: string, message: string, receiverId?: string) => string
   addTeamFeedback: (hackathonId: string, teamId: string, feedback: string, isPublic: boolean) => string
   applyAsJudge: (hackathonId: string) => string
+  // Mentor features
+  createHelpRequest: (teamId: string, hackathonId: string, message: string, priority: 'urgent' | 'normal') => string
+  resolveHelpRequest: (requestId: string, mentorId: string) => void
+  addMentorActivity: (teamId: string, hackathonId: string, type: 'chat' | 'feedback' | 'resolved_request', note: string) => string
+  // Mentor-hackathon assignment requests
+  requestMentorForHackathon: (hackathonId: string, message?: string) => string
+  acceptMentorRequest: (requestId: string) => void
+  declineMentorRequest: (requestId: string) => void
+  // Beginner mode
+  toggleBeginnerMode: () => void
+  startTour: () => void
+  endTour: () => void
+  nextTourStep: () => void
+  prevTourStep: () => void
+  toggleTooltips: (show?: boolean) => void
+  completeTour: (tourId: string) => void
+  // Special quick mode: show only the 2nd step
+  showOnlySecondStep: boolean
+  startSecondStepTour: () => void
+  clearSecondStepTour: () => void
+  // Onboarding and help state
+  onboarding: {
+    finishedRegistration: boolean
+    joinedTeam: boolean
+    readRules: boolean
+    startedProject: boolean
+    askedMentor: boolean
+  }
+  helpSeen: string[]
+  markMilestone: (key: keyof AppState['onboarding'], value?: boolean) => void
+  markHelpSeen: (key: string) => void
 }
 
-const seed = () => {
+const seed = (): SeedData => {
   const now = Date.now()
   const day = 24 * 60 * 60 * 1000
 
@@ -61,19 +104,20 @@ const seed = () => {
 
   const h2: Hackathon = {
     id: 'hx-2',
-    title: 'AI for Good',
-    org: 'Open Impact',
-    dateRange: 'Nov 10 - Nov 12',
+    title: "Code Diva's Hack",
+    org: 'Archi',
+    dateRange: 'Oct 28 - Oct 29',
     tags: ['AI', 'Health'],
     prize: '₹2,00,000',
-    description: 'Build AI solutions for social impact challenges.',
+    description: 'AIML based hackathon with blockchain integration.',
     criteria: [
       { id: 'c1', label: 'Innovation', max: 10 },
       { id: 'c2', label: 'Feasibility', max: 10 },
       { id: 'c3', label: 'Impact', max: 10 },
     ],
-    startAt: now + 20 * day,
-    endAt: now + 23 * day,
+    // Make hx-2 currently active as well
+    startAt: now - day,
+    endAt: now + day,
   }
 
   const h3: Hackathon = {
@@ -127,24 +171,188 @@ const seed = () => {
     badges: []
   }
 
+  const mentor1: User = {
+    id: 'mentor-1',
+    name: 'Sarah Johnson',
+    email: 'sarah@mentor.com',
+    role: 'mentor',
+    bio: 'Passionate about helping teams build amazing products.',
+    expertise: ['React', 'Node.js', 'System Design', 'Team Leadership'],
+    badges: []
+  }
+
+  const mentor2: User = {
+    id: 'mentor-2',
+    name: 'Arjun Mehta',
+    email: 'arjun@mentor.com',
+    role: 'mentor',
+    bio: 'Full‑stack engineer and hackathon coach.',
+    expertise: ['TypeScript', 'Next.js', 'PostgreSQL'],
+    badges: []
+  }
+
+  const mentor3: User = {
+    id: 'mentor-3',
+    name: 'Neha Kapoor',
+    email: 'neha@mentor.com',
+    role: 'mentor',
+    bio: 'Product-minded mentor focused on UX and shipping.',
+    expertise: ['UX', 'Product Strategy', 'React'],
+    badges: []
+  }
+
+  const mentor4: User = {
+    id: 'mentor-4',
+    name: 'Dev Patel',
+    email: 'dev@mentor.com',
+    role: 'mentor',
+    bio: 'Cloud and DevOps architect. Deploy fast, scale safely.',
+    expertise: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
+    badges: []
+  }
+
+  const mentor5: User = {
+    id: 'mentor-5',
+    name: 'Ananya Rao',
+    email: 'ananya@mentor.com',
+    role: 'mentor',
+    bio: 'ML researcher helping teams navigate data science.',
+    expertise: ['Python', 'ML', 'LLMs', 'MLOps'],
+    badges: []
+  }
+
+  const mentor6: User = {
+    id: 'mentor-6',
+    name: 'Vikram Shah',
+    email: 'vikram@mentor.com',
+    role: 'mentor',
+    bio: 'Systems engineer with a love for performance tuning.',
+    expertise: ['Golang', 'System Design', 'Databases'],
+    badges: []
+  }
+
+  const participant1: User = {
+    id: 'part-1',
+    name: 'Alex Chen',
+    email: 'alex@example.com',
+    role: 'participant',
+    badges: []
+  }
+
+  const participant2: User = {
+    id: 'part-2',
+    name: 'Maria Garcia',
+    email: 'maria@example.com',
+    role: 'participant',
+    badges: []
+  }
+
   const users = {
     [judge1.id]: judge1,
     [judge2.id]: judge2,
     [judge3.id]: judge3,
+    [mentor1.id]: mentor1,
+    [mentor2.id]: mentor2,
+    [mentor3.id]: mentor3,
+    [mentor4.id]: mentor4,
+    [mentor5.id]: mentor5,
+    [mentor6.id]: mentor6,
+    [participant1.id]: participant1,
+    [participant2.id]: participant2,
   }
 
+  const team1 = { id: 'team-1', name: 'Code Warriors', hackathonId: 'hx-1', members: ['part-1', 'part-2'] }
+  const team2 = { id: 'team-2', name: 'AI Innovators', hackathonId: 'hx-1', members: ['part-1'] }
+  const team3 = { id: 'team-3', name: 'Web Wizards', hackathonId: 'hx-2', members: ['part-2'] }
+
+  const teams = { [team1.id]: team1, [team2.id]: team2, [team3.id]: team3 }
+
+  const sub1 = { id: 'sub-1', hackathonId: 'hx-1', teamId: 'team-1', title: 'Smart Health Tracker', description: 'AI-powered health monitoring app', createdAt: now - 2 * 60 * 60 * 1000 }
+  const sub2 = { id: 'sub-2', hackathonId: 'hx-1', teamId: 'team-2', title: 'EduBot AI', description: 'Conversational AI for education', createdAt: now - 4 * 60 * 60 * 1000 }
+
+  const submissions = { [sub1.id]: sub1, [sub2.id]: sub2 }
+
+  const req1 = { 
+    id: 'req-1', 
+    teamId: 'team-1', 
+    hackathonId: 'hx-1', 
+    message: 'Need help with React state management - our app is getting complex!', 
+    priority: 'urgent' as const, 
+    status: 'pending' as const, 
+    createdAt: now - 30 * 60 * 1000 
+  }
+  const req2 = { 
+    id: 'req-2', 
+    teamId: 'team-2', 
+    hackathonId: 'hx-1', 
+    message: 'Looking for advice on choosing the right ML model for our use case', 
+    priority: 'normal' as const, 
+    status: 'pending' as const, 
+    createdAt: now - 60 * 60 * 1000 
+  }
+  const req3 = { 
+    id: 'req-3', 
+    teamId: 'team-3', 
+    hackathonId: 'hx-2', 
+    message: 'Database schema design review needed', 
+    priority: 'normal' as const, 
+    status: 'resolved' as const, 
+    assignedMentorId: 'mentor-1',
+    resolvedAt: now - 10 * 60 * 1000,
+    createdAt: now - 2 * 60 * 60 * 1000 
+  }
+
+  // Add a fresh pending help request for hx-2
+  const req4 = {
+    id: 'req-4',
+    teamId: 'team-3',
+    hackathonId: 'hx-2',
+    message: 'Need guidance on model evaluation metrics',
+    priority: 'urgent' as const,
+    status: 'pending' as const,
+    createdAt: now - 15 * 60 * 1000
+  }
+
+  const helpRequests = { [req1.id]: req1, [req2.id]: req2, [req3.id]: req3, [req4.id]: req4 }
+
+  // Seed mentor requests: both hx-1 and hx-2 accepted so they appear as active
+  const mr1: MentorRequest = { id: 'mreq-1', hackathonId: 'hx-1', mentorId: 'mentor-1', status: 'accepted', message: 'Happy to help health-tech teams', createdAt: now - 3 * 60 * 60 * 1000, decidedAt: now - 2 * 60 * 60 * 1000 }
+  const mr2: MentorRequest = { id: 'mreq-2', hackathonId: 'hx-2', mentorId: 'mentor-1', status: 'accepted', message: 'Excited to support impact projects', createdAt: now - 90 * 60 * 1000, decidedAt: now - 60 * 60 * 1000 }
+  const mentorRequests = { [mr1.id]: mr1, [mr2.id]: mr2 }
+
   return { 
-    hackathons: { [h1.id]: h1, [h2.id]: h2, [h3.id]: h3 },
-    users
+    hackathons: { [h1.id]: h1, [h2.id]: h2 },
+    users,
+    teams,
+    submissions,
+    helpRequests,
+    mentorRequests
   }
 }
 
+const initialState = {
+  isBeginnerMode: false,
+  currentTourStep: 0,
+  completedTours: [],
+  showTooltips: true,
+  showOnlySecondStep: false,
+  onboarding: {
+    finishedRegistration: false,
+    joinedTeam: false,
+    readRules: false,
+    startedProject: false,
+    askedMentor: false,
+  },
+  helpSeen: [] as string[]
+}
+
 export const useStore = create<AppState>()(persist((set, get) => ({
+  ...initialState,
   users: seed().users,
   session: {},
   hackathons: seed().hackathons,
-  teams: {},
-  submissions: {},
+  teams: seed().teams,
+  submissions: seed().submissions,
   evaluations: {},
   announcements: {},
   faqs: {},
@@ -152,10 +360,32 @@ export const useStore = create<AppState>()(persist((set, get) => ({
   judgeChats: {},
   teamFeedbacks: {},
   judgeApplications: {},
+  helpRequests: seed().helpRequests,
+  mentorActivities: {},
+  mentorRequests: seed().mentorRequests,
   login: (email) => {
     const { users } = get()
     const user = Object.values(users).find(u => u.email.toLowerCase() === email.toLowerCase())
-    if (user) set({ session: { currentUserId: user.id } })
+    if (user) {
+      set({ session: { currentUserId: user.id } })
+      // Auto-assign seeded active hackathons to mentors if none accepted yet
+      if (user.role === 'mentor') {
+        const state = get()
+        const hasAccepted = Object.values(state.mentorRequests).some(r => r.mentorId === user.id && r.status === 'accepted')
+        if (!hasAccepted) {
+          const toAssign = ['hx-1', 'hx-2'].filter(hid => !!state.hackathons[hid])
+          if (toAssign.length) {
+            const nowTs = Date.now()
+            const newReqs: Record<string, MentorRequest> = {}
+            toAssign.forEach((hid, idx) => {
+              const id = uid('mreq')
+              newReqs[id] = { id, hackathonId: hid, mentorId: user.id, status: 'accepted', createdAt: nowTs - (idx+1)*1000, decidedAt: nowTs - idx*500 }
+            })
+            set(s => ({ mentorRequests: { ...s.mentorRequests, ...newReqs } }))
+          }
+        }
+      }
+    }
     else throw new Error('No account found with this email')
   },
   logout: () => set({ session: {} }),
@@ -171,6 +401,33 @@ export const useStore = create<AppState>()(persist((set, get) => ({
     const hack: Hackathon = { id, organizerId: currentUserId, ...payload }
     set(state => ({ hackathons: { ...state.hackathons, [id]: hack } }))
     return id
+  },
+  requestMentorForHackathon: (hackathonId, message) => {
+    const currentUserId = get().session.currentUserId
+    if (!currentUserId) throw new Error('Not authenticated')
+    const me = get().users[currentUserId]
+    if (me?.role !== 'mentor') throw new Error('Only mentors can request mentoring')
+    // prevent duplicate pending
+    const existing = Object.values(get().mentorRequests).find(r => r.hackathonId === hackathonId && r.mentorId === currentUserId && r.status === 'pending')
+    if (existing) return existing.id
+    const id = uid('mreq')
+    const req: MentorRequest = { id, hackathonId, mentorId: currentUserId, status: 'pending', message, createdAt: Date.now() }
+    set(state => ({ mentorRequests: { ...state.mentorRequests, [id]: req } }))
+    return id
+  },
+  acceptMentorRequest: (requestId) => {
+    set(state => {
+      const r = state.mentorRequests[requestId]
+      if (!r) return state
+      return { mentorRequests: { ...state.mentorRequests, [requestId]: { ...r, status: 'accepted', decidedAt: Date.now() } } }
+    })
+  },
+  declineMentorRequest: (requestId) => {
+    set(state => {
+      const r = state.mentorRequests[requestId]
+      if (!r) return state
+      return { mentorRequests: { ...state.mentorRequests, [requestId]: { ...r, status: 'declined', decidedAt: Date.now() } } }
+    })
   },
   registerTeam: (hackathonId, teamName) => {
     const currentUserId = get().session.currentUserId
@@ -255,14 +512,17 @@ export const useStore = create<AppState>()(persist((set, get) => ({
     set(state => {
       const q = state.questions[questionId]
       if (!q) return state
-      q.answer = { authorId: currentUserId, text, createdAt: Date.now() }
-      return { questions: { ...state.questions, [questionId]: q } }
+      const updated: Question = {
+        ...q,
+        answer: { authorId: currentUserId, text, createdAt: Date.now() }
+      }
+      return { questions: { ...state.questions, [questionId]: updated } }
     })
   },
   sendJudgeMessage: (hackathonId, message, receiverId) => {
     const currentUserId = get().session.currentUserId
     if (!currentUserId) throw new Error('Not authenticated')
-    const id = uid('jchat')
+    const id = uid('jmsg')
     const chat: JudgeChat = {
       id,
       hackathonId,
@@ -301,4 +561,78 @@ export const useStore = create<AppState>()(persist((set, get) => ({
     set(state => ({ judgeApplications: { ...state.judgeApplications, [id]: app } }))
     return id
   },
-}), { name: 'innovortex-store' }))
+  // Mentor features
+  createHelpRequest: (teamId, hackathonId, message, priority) => {
+    const id = uid('req')
+    const request: HelpRequest = { id, teamId, hackathonId, message, priority, status: 'pending', createdAt: Date.now() }
+    set(state => ({ helpRequests: { ...state.helpRequests, [id]: request } }))
+    return id
+  },
+  resolveHelpRequest: (requestId, mentorId) => {
+    set(state => {
+      const req = state.helpRequests[requestId]
+      if (!req) return state
+      const updated: HelpRequest = { ...req, status: 'resolved', resolvedAt: Date.now(), assignedMentorId: mentorId }
+      return { helpRequests: { ...state.helpRequests, [requestId]: updated } }
+    })
+  },
+  addMentorActivity: (teamId, hackathonId, type, note) => {
+    const currentUserId = get().session.currentUserId
+    if (!currentUserId) throw new Error('Not authenticated')
+    const id = uid('mact')
+    const activity: MentorActivity = { id, mentorId: currentUserId, teamId, hackathonId, type, note, createdAt: Date.now() }
+    set(state => ({ mentorActivities: { ...state.mentorActivities, [id]: activity } }))
+    return id
+  },
+  // Beginner mode actions
+  toggleBeginnerMode: () => set(state => ({
+    isBeginnerMode: !state.isBeginnerMode,
+    showTooltips: !state.isBeginnerMode
+  })),
+  startTour: () => set({ currentTourStep: 0 }),
+  endTour: () => set({ currentTourStep: -1 }),
+  nextTourStep: () => set(state => ({ currentTourStep: state.currentTourStep + 1 })),
+  prevTourStep: () => set(state => ({ currentTourStep: Math.max(0, state.currentTourStep - 1) })),
+  toggleTooltips: (show) => set(state => ({ showTooltips: show !== undefined ? show : !state.showTooltips })),
+  completeTour: (tourId) => set(state => ({ completedTours: [...new Set([...state.completedTours, tourId])] })),
+  // Special quick mode handlers
+  showOnlySecondStep: false,
+  startSecondStepTour: () => set({ currentTourStep: 1, showOnlySecondStep: true }),
+  clearSecondStepTour: () => set({ showOnlySecondStep: false }),
+  // Onboarding + help actions
+  markMilestone: (key, value = true) => set(state => ({ onboarding: { ...state.onboarding, [key]: value } })),
+  markHelpSeen: (key) => set(state => ({ helpSeen: [...new Set([...(state.helpSeen || []), key])] })),
+}), { 
+  name: 'innovortex-store',
+  version: 4,
+  migrate: (persisted: any, version: number) => {
+    if (!persisted) return persisted
+    if (version < 2) {
+      return {
+        ...persisted,
+        // Ensure beginner mode doesn't auto-start from an older session
+        isBeginnerMode: false,
+        showOnlySecondStep: false,
+        currentTourStep: -1,
+      }
+    }
+    if (version < 3) {
+      // Reset to load new seed data with teams, submissions, and help requests
+      const seedData = seed()
+      return {
+        ...persisted,
+        teams: seedData.teams,
+        submissions: seedData.submissions,
+        helpRequests: seedData.helpRequests,
+      }
+    }
+    if (version < 4) {
+      const seedData = seed()
+      return {
+        ...persisted,
+        mentorRequests: seedData.mentorRequests || {},
+      }
+    }
+    return persisted
+  },
+}))
