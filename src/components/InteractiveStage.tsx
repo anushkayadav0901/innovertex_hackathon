@@ -1,8 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useSpring, animated } from '@react-spring/three';
 import * as THREE from 'three';
-import StageTooltip from './StageTooltip';
 import { StageInfo } from '../data/stageData';
 
 interface InteractiveStageProps {
@@ -11,6 +10,8 @@ interface InteractiveStageProps {
   children: React.ReactNode;
   isJudgeMode: boolean;
   onLearnMore?: () => void;
+  onHoverStart?: (stageInfo: StageInfo, position: [number, number, number]) => void;
+  onHoverEnd?: () => void;
 }
 
 const InteractiveStage: React.FC<InteractiveStageProps> = ({
@@ -18,12 +19,15 @@ const InteractiveStage: React.FC<InteractiveStageProps> = ({
   position,
   children,
   isJudgeMode,
-  onLearnMore
+  onLearnMore,
+  onHoverStart,
+  onHoverEnd
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const groupRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Subtle pulsing glow animation
   useFrame((state) => {
@@ -33,17 +37,46 @@ const InteractiveStage: React.FC<InteractiveStageProps> = ({
     }
   });
 
-  const handlePointerEnter = () => {
+  const handlePointerEnter = useCallback(() => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
     setIsHovered(true);
     setShowTooltip(true);
     document.body.style.cursor = 'pointer';
-  };
+    
+    // Add small delay to prevent rapid flickering
+    hoverTimeoutRef.current = setTimeout(() => {
+      onHoverStart?.(stageInfo, position);
+    }, 100);
+  }, [stageInfo, position, onHoverStart]);
 
-  const handlePointerLeave = () => {
+  const handlePointerLeave = useCallback(() => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
     setIsHovered(false);
     setShowTooltip(false);
     document.body.style.cursor = 'auto';
-  };
+    
+    // Add small delay before hiding to prevent flickering
+    hoverTimeoutRef.current = setTimeout(() => {
+      onHoverEnd?.();
+    }, 50);
+  }, [onHoverEnd]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleClick = (e: any) => {
     e.stopPropagation();
@@ -54,13 +87,19 @@ const InteractiveStage: React.FC<InteractiveStageProps> = ({
 
   return (
     <group position={position}>
-      {/* Interactive wrapper */}
-      <group
-        ref={groupRef}
+      {/* Invisible larger collision area for stable hover detection */}
+      <mesh
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}
         onClick={handleClick}
+        visible={false}
       >
+        <sphereGeometry args={[6, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
+      {/* Interactive wrapper */}
+      <group ref={groupRef}>
         {/* Subtle pulsing glow when hovered */}
         {isHovered && (
           <mesh ref={glowRef} position={[0, 0, 0]}>
@@ -82,14 +121,6 @@ const InteractiveStage: React.FC<InteractiveStageProps> = ({
         </animated.group>
       </group>
 
-      {/* Clean, minimal tooltip */}
-      <StageTooltip
-        stageInfo={stageInfo}
-        position={position}
-        isVisible={showTooltip}
-        isJudgeMode={isJudgeMode}
-        onLearnMore={onLearnMore}
-      />
     </group>
   );
 };
