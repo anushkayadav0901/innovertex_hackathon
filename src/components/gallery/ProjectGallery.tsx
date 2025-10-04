@@ -259,9 +259,9 @@ export default function ProjectGallery() {
                   onClick={() => setSelectedProject(project)}
                 />
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
         {/* No Results */}
         {!loading && filteredProjects.length === 0 && (
@@ -276,21 +276,6 @@ export default function ProjectGallery() {
             <p className="text-slate-400">Try adjusting your search or filter criteria</p>
           </motion.div>
         )}
-
-        {/* Loading More */}
-        {!loading && hasMore && filteredProjects.length > 0 && (
-          <div className="flex justify-center mt-8">
-            <div className="flex space-x-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-3 h-3 bg-brand-400 rounded-full animate-bounce"
-                  style={{ animationDelay: `${i * 0.2}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Zoom Modal */}
@@ -298,6 +283,7 @@ export default function ProjectGallery() {
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
       />
+
     </div>
   )
 }

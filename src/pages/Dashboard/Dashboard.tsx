@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import { motion } from 'framer-motion'
 import { BarChart3, Users, Trophy, Calendar, TrendingUp, Award, Target } from 'lucide-react'
@@ -13,11 +13,26 @@ import MentorDashboard from './MentorDashboard'
 export default function Dashboard() {
   const currentUserId = useStore(s => s.session.currentUserId)
   const user = useStore(s => currentUserId ? s.users[currentUserId] : undefined)
+  const teams = useStore(s => s.teams)
+  const hackathons = useStore(s => s.hackathons)
+  const foodWindows = useStore(s => s.foodWindows)
+  const foodRedemptions = useStore(s => s.foodRedemptions)
+  const activateFoodWindow = useStore(s => s.activateFoodWindow)
+  const endFoodWindow = useStore(s => s.endFoodWindow)
+  const getParticipantFoodToken = useStore(s => s.getParticipantFoodToken)
+  
 
   // Route mentors to MentorDashboard; others see the generic dashboard below
   if (user?.role === 'mentor') {
     return <MentorDashboard />
   }
+
+  // Organizer controls: activate food coupons per hackathon
+  const myOrganized = useMemo(() => Object.values(hackathons).filter(h => h.organizerId === user?.id), [hackathons, user?.id])
+  const [durationByHx, setDurationByHx] = useState<Record<string, number>>({})
+
+  // Participant coupon sections
+  const myTeams = useMemo(() => Object.values(teams).filter(t => t.members.includes(currentUserId || '')), [teams, currentUserId])
 
   const stats = [
     { 
@@ -98,156 +113,108 @@ export default function Dashboard() {
         <p className="text-slate-400 mt-2 text-lg">Here's what's happening with your hackathons</p>
       </motion.div>
 
-      {/* Stats Cards */}
-      <div className="dashboard-grid">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <motion.div
-              key={stat.label}
-              className={`dashboard-card metric-card glassmorphism rounded-2xl p-6 relative overflow-hidden`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <div className={`absolute inset-0 ${stat.gradient} opacity-10`} />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-white/10`}>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
-                  </div>
-                  <div className="flex items-center gap-1 text-green-400 text-sm">
-                    <TrendingUp className="w-4 h-4" />
-                    {stat.change}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400 mb-2">{stat.label}</p>
-                  <div className="text-3xl font-bold text-white">
-                    <AnimatedCounter end={stat.value} duration={1.5} />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
-
-      {/* Charts Section */}
-      <div className="dashboard-grid">
+      {/* Organizer: Food Coupon Controls */}
+      {user?.role === 'organizer' && myOrganized.length > 0 && (
         <motion.div
           className="dashboard-card glassmorphism rounded-2xl p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <DonutChart
-            data={participationData}
-            title="Participation Statistics"
-            centerText="108 Total"
-            size={250}
-          />
-        </motion.div>
-
-        <motion.div
-          className="dashboard-card glassmorphism rounded-2xl p-6 lg:col-span-2"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <LineChart
-            data={submissionTrendsData}
-            title="Submission Trends Over Time"
-            height={300}
-          />
-        </motion.div>
-      </div>
-
-      {/* Progress and Calendar Section */}
-      <div className="dashboard-grid">
-        <motion.div
-          className="dashboard-card glassmorphism rounded-2xl p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-        >
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <Target className="w-5 h-5 text-brand-400" />
-            Progress Overview
-          </h3>
-          <div className="space-y-6">
-            {progressData.map((item, index) => (
-              <div key={item.label} className="flex items-center gap-4">
-                <ProgressRing
-                  progress={item.progress}
-                  size={80}
-                  strokeWidth={6}
-                  color={item.color}
-                  showPercentage={false}
-                  duration={1.5}
-                />
-                <div>
-                  <div className="text-sm font-medium text-white">{item.label}</div>
-                  <div className="text-xs text-slate-400">{item.progress}% Complete</div>
+          <h3 className="text-lg font-semibold mb-4">Food Coupons</h3>
+          <div className="space-y-4">
+            {myOrganized.map(hx => {
+              const win = foodWindows[hx.id]
+              const now = Date.now()
+              const active = !!win && now >= win.startAt && now <= win.endAt
+              const remainingMs = active ? (win.endAt - now) : 0
+              const remainingH = Math.floor(remainingMs / (60 * 60 * 1000))
+              const remainingM = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000))
+              return (
+                <div key={hx.id} className="rounded-lg bg-white/5 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-medium">{hx.title}</div>
+                      {active ? (
+                        <div className="text-sm text-green-400">Active • Ends in {remainingH}h {remainingM}m</div>
+                      ) : (
+                        <div className="text-sm text-slate-400">Inactive</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {!active && (
+                        <>
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="Hours"
+                            className="input w-28"
+                            value={durationByHx[hx.id] ?? ''}
+                            onChange={e => setDurationByHx(s => ({ ...s, [hx.id]: Number(e.target.value) }))}
+                          />
+                          <button
+                            className="btn-primary"
+                            onClick={() => activateFoodWindow(hx.id, durationByHx[hx.id] || 1)}
+                          >
+                            Activate
+                          </button>
+                        </>
+                      )}
+                      {active && (
+                        <button
+                          className="btn-primary bg-red-500/20 hover:bg-red-500/30"
+                          onClick={() => endFoodWindow(hx.id)}
+                        >
+                          End
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </motion.div>
+      )}
 
-        <motion.div
-          className="dashboard-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-        >
-          <CalendarWidget />
-        </motion.div>
 
-        <motion.div
-          className="dashboard-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
-        >
-          <NotificationCards />
-        </motion.div>
-      </div>
-
-      {/* Recent Activity */}
-      <motion.div
-        className="dashboard-card glassmorphism rounded-2xl p-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1 }}
-      >
-        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-          <Award className="w-5 h-5 text-brand-400" />
-          Recent Achievements
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { title: 'Code Warrior', desc: 'Completed 5 hackathons', color: 'bg-purple-500/20 border-purple-500/30' },
-            { title: 'Team Player', desc: 'Collaborated with 10+ members', color: 'bg-blue-500/20 border-blue-500/30' },
-            { title: 'Innovation Master', desc: 'Won 3 hackathons this year', color: 'bg-green-500/20 border-green-500/30' }
-          ].map((achievement, index) => (
-            <motion.div
-              key={achievement.title}
-              className={`p-4 rounded-xl border ${achievement.color}`}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.2 + index * 0.1 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-            >
-              <div className="text-center">
-                <Award className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
-                <h4 className="font-semibold text-white">{achievement.title}</h4>
-                <p className="text-xs text-slate-400 mt-1">{achievement.desc}</p>
+      {/* Participant: My Food Coupon (QR) */}
+      {myTeams.map(team => {
+        const hx = hackathons[team.hackathonId]
+        const win = foodWindows[team.hackathonId]
+        const now = Date.now()
+        const active = !!win && now >= (win?.startAt || 0) && now <= (win?.endAt || 0)
+        // compute progress for the team
+        const teamTotal = team.members.length
+        const teamRedeemed = Object.values(foodRedemptions).filter(r => r.teamId === team.id && r.redeemedAt).length
+        const hide = teamTotal > 0 && teamRedeemed >= teamTotal
+        if (!active || hide) return null
+        const token = currentUserId ? getParticipantFoodToken(team.hackathonId, currentUserId) : undefined
+        const scanUrl = typeof window !== 'undefined' ? `${window.location.origin}/food-scan?token=${encodeURIComponent(token || '')}` : `/food-scan?token=${encodeURIComponent(token || '')}`
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(scanUrl)}`
+        return (
+          <motion.div
+            key={`food-${team.id}`}
+            className="dashboard-card glassmorphism rounded-2xl p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <div>
+                <img src={qrUrl} alt="Food QR" className="w-[220px] h-[220px] rounded-lg bg-white/10 p-2" />
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white mb-1">Food Coupon Active</h3>
+                <div className="text-sm text-slate-300 mb-2">Hackathon: {hx?.title} • Team: {team.name}</div>
+                <div className="text-sm text-blue-300 mb-3">Redemption: {teamRedeemed}/{teamTotal}</div>
+                <div className="text-xs text-slate-400 mb-4">Show this QR at the food counter. It can be scanned once per member.</div>
+                <a href={scanUrl} target="_blank" rel="noreferrer" className="btn-primary inline-block">Open Scan Link</a>
+              </div>
+            </div>
+          </motion.div>
+        )
+      })}
     </div>
   )
 }

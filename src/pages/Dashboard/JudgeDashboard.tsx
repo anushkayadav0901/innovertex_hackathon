@@ -13,6 +13,9 @@ export default function JudgeDashboard() {
   const evaluations = Object.values(useStore(s => s.evaluations))
   const judgeChats = Object.values(useStore(s => s.judgeChats))
   const teamFeedbacks = Object.values(useStore(s => s.teamFeedbacks))
+  const foodWindows = useStore(s => s.foodWindows)
+  const foodRedemptions = useStore(s => s.foodRedemptions)
+  const activateFoodWindow = useStore(s => s.activateFoodWindow)
   const sendJudgeMessage = useStore(s => s.sendJudgeMessage)
   const addTeamFeedback = useStore(s => s.addTeamFeedback)
   const addEvaluation = useStore(s => s.addEvaluation)
@@ -27,6 +30,8 @@ export default function JudgeDashboard() {
   const [scoreView, setScoreView] = useState<'entry' | 'ranking'>('entry')
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null)
   const [entryScores, setEntryScores] = useState<Record<string, number>>({}) // criterionId -> score
+  // Food tab state
+  const [foodHours, setFoodHours] = useState<number>(1)
 
   // Get all judges for the current hackathon
   const judges = useMemo(() => {
@@ -106,6 +111,7 @@ export default function JudgeDashboard() {
     { id: 'judges', label: 'Fellow Judges', icon: Users },
     { id: 'chat', label: 'Judge Chat', icon: MessageCircle },
     { id: 'feedback', label: 'Team Feedback', icon: Send },
+    { id: 'food', label: 'Food Coupons', icon: Award },
   ]
 
   return (
@@ -114,6 +120,66 @@ export default function JudgeDashboard() {
         <div className="card p-6">
           <h1 className="text-xl font-semibold mb-2">Hackathon not found</h1>
           <Link to="/dashboard" className="btn-primary">Back to Judge Hub</Link>
+        </div>
+      )}
+
+      {/* Food Coupons Tab */}
+      {activeTab === 'food' && currentHackathon && (
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold mb-4">Food Coupons</h2>
+          {(() => {
+            const win = foodWindows[currentHackathon.id]
+            const now = Date.now()
+            const active = !!win && now >= win.startAt && now <= win.endAt
+            const remainingMs = active ? (win.endAt - now) : 0
+            const remainingH = Math.floor(remainingMs / (60 * 60 * 1000))
+            const remainingM = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000))
+            const hackTeams = Object.values(teams).filter(t => t.hackathonId === currentHackathon.id)
+            return (
+              <>
+                <div className="rounded-lg bg-white/5 p-4 mb-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-medium">{currentHackathon.title}</div>
+                      {active ? (
+                        <div className="text-sm text-green-400">Active • Ends in {remainingH}h {remainingM}m</div>
+                      ) : (
+                        <div className="text-sm text-slate-400">Inactive</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        className="input w-28"
+                        type="number"
+                        min={1}
+                        placeholder="Hours"
+                        value={foodHours || ''}
+                        onChange={e => setFoodHours(Number(e.target.value))}
+                      />
+                      <button className="btn-primary" onClick={() => activateFoodWindow(currentHackathon.id, foodHours || 1)}>
+                        {active ? 'Extend/Restart' : 'Activate'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-medium">Team Redemption Progress</h3>
+                  {hackTeams.length === 0 && <div className="text-sm text-slate-400">No teams yet.</div>}
+                  {hackTeams.map(t => {
+                    const total = t.members.length
+                    const redeemed = Object.values(foodRedemptions).filter(r => r.teamId === t.id && r.redeemedAt).length
+                    return (
+                      <div key={t.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5">
+                        <div className="font-medium">{t.name}</div>
+                        <div className="text-sm text-blue-300">{redeemed}/{total}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )
+          })()}
         </div>
       )}
       {currentHackathon && (<>
@@ -162,24 +228,42 @@ export default function JudgeDashboard() {
               const myEvaluation = evaluations.find(e => e.submissionId === su.id && e.judgeId === currentUserId)
               
               return (
-                <div key={su.id} className="flex items-center justify-between rounded-lg bg-white/5 p-4">
-                  <div className="flex-1">
+                <div key={su.id} className="rounded-lg bg-white/5 p-4">
+                  <div className="flex items-start justify-between">
                     <div className="font-medium text-lg">{su.title}</div>
                     <div className="text-sm text-slate-300 mb-1">{hackathon?.title}</div>
                     <div className="text-sm text-blue-400">Team: {team?.name}</div>
                     {myEvaluation && (
                       <div className="text-sm text-green-400 mt-1">✓ Evaluated</div>
                     )}
+                    <div className="flex space-x-2">
+                      <Link 
+                        to={`/evaluate/${su.id}`} 
+                        className={`btn-primary ${
+                          myEvaluation ? 'bg-green-600 hover:bg-green-700' : ''
+                        }`}
+                      >
+                        {myEvaluation ? 'Re-evaluate' : 'Evaluate'}
+                      </Link>
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Link 
-                      to={`/evaluate/${su.id}`} 
-                      className={`btn-primary ${
-                        myEvaluation ? 'bg-green-600 hover:bg-green-700' : ''
-                      }`}
-                    >
-                      {myEvaluation ? 'Re-evaluate' : 'Evaluate'}
-                    </Link>
+                  {/* Artifact Links */}
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
+                    {su.repoUrl && (
+                      <a href={su.repoUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-blue-300">GitHub Repo</a>
+                    )}
+                    {su.deckUrl && (
+                      <a href={su.deckUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-purple-300">Pitch Deck</a>
+                    )}
+                    {su.figmaUrl && (
+                      <a href={su.figmaUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-pink-300">Figma</a>
+                    )}
+                    {su.driveUrl && (
+                      <a href={su.driveUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded bg-white/10 hover:bg-white/20 text-green-300">Drive/Video</a>
+                    )}
+                    {!su.repoUrl && !su.deckUrl && !su.figmaUrl && !su.driveUrl && (
+                      <div className="text-slate-400">No artifacts provided.</div>
+                    )}
                   </div>
                 </div>
               )
