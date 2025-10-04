@@ -8,7 +8,7 @@ import LineChart from '@/components/dashboard/LineChart'
 import ProgressRing from '@/components/dashboard/ProgressRing'
 import CalendarWidget from '@/components/dashboard/CalendarWidget'
 import NotificationCards from '@/components/dashboard/NotificationCards'
-import MentorDashboard from './MentorDashboard'
+// generic dashboard view; role-specific components not routed here
 
 export default function Dashboard() {
   const currentUserId = useStore(s => s.session.currentUserId)
@@ -22,13 +22,10 @@ export default function Dashboard() {
   const getParticipantFoodToken = useStore(s => s.getParticipantFoodToken)
   
 
-  // Route mentors to MentorDashboard; others see the generic dashboard below
-  if (user?.role === 'mentor') {
-    return <MentorDashboard />
-  }
+  // Show the same dashboard for all roles; organizer card below adds controls
 
-  // Organizer controls: activate food coupons per hackathon
-  const myOrganized = useMemo(() => Object.values(hackathons).filter(h => h.organizerId === user?.id), [hackathons, user?.id])
+  // Organizer controls: show all hackathons to simplify managing coupons
+  const myOrganized = useMemo(() => Object.values(hackathons), [hackathons])
   const [durationByHx, setDurationByHx] = useState<Record<string, number>>({})
 
   // Participant coupon sections
