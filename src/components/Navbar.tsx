@@ -183,14 +183,19 @@ export default function Navbar() {
             )}
           </div>
           
-          {user?.role === 'mentor' && (
-            <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
+          <NavLink to="/community" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Community</NavLink>
+          {user && user.role !== 'mentor' && (
+            <>
+              <NavLink to="/teams" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Teams</NavLink>
+              <NavLink to="/gallery" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gallery</NavLink>
+              <NavLink to="/gamify" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Gamify</NavLink>
+              <NavLink to="/quest-map" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Quest Map</NavLink>
+            </>
           )}
           {user ? (
             <>
               <NavLink to="/dashboard" className={({isActive}) => `text-sm ${isActive ? 'text-brand-300' : 'text-slate-300 hover:text-white'}`}>Dashboard</NavLink>
               <NotificationBell />
-              <span className="badge capitalize">{user.role}</span>
               <button onClick={logout} className="btn-primary bg-white/10 hover:bg-white/20">Logout</button>
             </>
           ) : (

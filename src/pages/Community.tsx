@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users, MessageCircle, Activity, TrendingUp } from 'lucide-react'
 import ChatInterface from '@/components/community/ChatInterface'
@@ -13,14 +12,6 @@ export default function Community() {
   const users = useStore(s => s.users)
   const currentUserId = useStore(s => s.session.currentUserId)
   const me = useMemo(() => (currentUserId ? users[currentUserId] : undefined), [currentUserId, users])
-  const navigate = useNavigate()
-
-  // Redirect non-mentors out of this page
-  useEffect(() => {
-    if (me && me.role !== 'mentor') {
-      navigate('/dashboard', { replace: true })
-    }
-  }, [me, navigate])
 
   const tabs = [
     { id: 'feed', label: 'Activity Feed', icon: Activity },
@@ -28,8 +19,7 @@ export default function Community() {
     { id: 'members', label: 'Members', icon: Users }
   ]
 
-  const mentorsOnly = useMemo(() => Object.values(users).filter(u => u.role === 'mentor'), [users])
-  const featuredMembers = mentorsOnly.slice(0, 6).map(u => u.id)
+  const featuredMembers = Object.keys(users).slice(0, 6)
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -41,11 +31,11 @@ export default function Community() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 bg-clip-text text-transparent">
-            Mentor Community
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-brand-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            Community Hub
           </h1>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Connect and collaborate with fellow mentors to share insights and best practices
+            Connect, collaborate, and celebrate with fellow innovators from around the world
           </p>
         </motion.div>
 
@@ -135,7 +125,7 @@ export default function Community() {
               
               {activeTab === 'chat' && (
                 <div className="space-y-6">
-                  <ChatInterface roomId="mentor-lounge" title="Mentor Lounge" height="600px" />
+                  <ChatInterface roomId="community-general" title="General Discussion" height="600px" />
                   
                   {/* Sample Post with Comments */}
                   <div className="glassmorphism rounded-2xl p-6">
@@ -163,11 +153,11 @@ export default function Community() {
               
               {activeTab === 'members' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {mentorsOnly.map((u) => (
+                  {Object.keys(users).map((userId) => (
                     <UserProfileCard
-                      key={u.id}
-                      userId={u.id}
-                      showActions={u.id !== currentUserId}
+                      key={userId}
+                      userId={userId}
+                      showActions={userId !== currentUserId}
                     />
                   ))}
                 </div>
