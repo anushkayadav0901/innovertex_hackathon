@@ -407,8 +407,8 @@ export const useStore = create<AppState>()(persist((set, get) => ({
     if (!currentUserId) throw new Error('Not authenticated')
     const me = get().users[currentUserId]
     if (me?.role !== 'mentor') throw new Error('Only mentors can request mentoring')
-    // prevent duplicate pending
-    const existing = Object.values(get().mentorRequests).find(r => r.hackathonId === hackathonId && r.mentorId === currentUserId && r.status === 'pending')
+    // prevent duplicate for same (mentor, hackathon) regardless of status
+    const existing = Object.values(get().mentorRequests).find(r => r.hackathonId === hackathonId && r.mentorId === currentUserId)
     if (existing) return existing.id
     const id = uid('mreq')
     const req: MentorRequest = { id, hackathonId, mentorId: currentUserId, status: 'pending', message, createdAt: Date.now() }

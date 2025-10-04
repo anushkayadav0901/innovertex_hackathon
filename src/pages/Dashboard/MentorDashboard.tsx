@@ -106,9 +106,17 @@ export default function MentorDashboard() {
 
   const activeHackathons = useMemo(() => {
     const now = Date.now()
-    return myAccepted
-      .map(r => hackathons[r.hackathonId])
-      .filter(h => h && (h.endAt ? h.endAt > now : true))
+    const seen = new Set<string>()
+    const list: typeof hackathons[keyof typeof hackathons][] = []
+    myAccepted.forEach(r => {
+      if (seen.has(r.hackathonId)) return
+      const h = hackathons[r.hackathonId]
+      if (h && (h.endAt ? h.endAt > now : true)) {
+        seen.add(r.hackathonId)
+        list.push(h)
+      }
+    })
+    return list
   }, [myAccepted, hackathons])
 
   // If no hackathon selected, show Active Hackathons selection page

@@ -65,134 +65,31 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
   return (
     <motion.div
-      className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
-        achievement.unlocked ? config.border : 'border-gray-200 dark:border-gray-700'
-      } ${
-        achievement.unlocked ? config.bg : 'bg-gray-100 dark:bg-gray-800'
+      className={`relative p-4 rounded-xl border cursor-pointer transition-colors ${
+        achievement.unlocked ? 'border-white/10 bg-white/5' : 'border-white/10 bg-slate-800/60'
       } ${className}`}
-      whileHover={{ 
-        scale: 1.05,
-        rotateY: isHovered ? 5 : 0,
-        rotateX: isHovered ? 5 : 0
-      }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={onClick}
       style={{
-        transformStyle: 'preserve-3d',
-        perspective: '1000px'
+        transformStyle: 'preserve-3d'
       }}
     >
-      {/* Rarity glow effect */}
-      {achievement.unlocked && (
-        <motion.div
-          className="absolute -inset-1 rounded-xl opacity-20 blur-sm"
-          style={{ backgroundColor: config.glow }}
-          animate={
-            achievement.rarity === 'rare' ? {
-              opacity: [0.1, 0.3, 0.1]
-            } : achievement.rarity === 'epic' ? {
-              scale: [0.95, 1.05, 0.95],
-              opacity: [0.2, 0.4, 0.2]
-            } : achievement.rarity === 'legendary' ? {
-              opacity: [0.3, 0.6, 0.3]
-            } : {}
-          }
-          transition={{
-            duration: achievement.rarity === 'rare' ? 3 : 
-                     achievement.rarity === 'epic' ? 2 : 
-                     achievement.rarity === 'legendary' ? 1.5 : 0,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      )}
-
-      {/* Legendary shimmer effect */}
-      {achievement.unlocked && achievement.rarity === 'legendary' && (
-        <motion.div
-          className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent"
-          animate={{ x: ['-100%', '100%'] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        />
-      )}
-
-      {/* Epic particle glow */}
-      {achievement.unlocked && achievement.rarity === 'epic' && (
-        <>
-          {Array.from({ length: 6 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-purple-400 rounded-full"
-              style={{
-                left: `${20 + (i * 15)}%`,
-                top: `${10 + (i % 2) * 70}%`
-              }}
-              animate={{
-                scale: [0, 1, 0],
-                opacity: [0, 0.8, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.3,
-                ease: "easeInOut"
-              }}
-            />
-          ))}
-        </>
-      )}
-
-      {/* Rare sparkle twinkle */}
-      {achievement.unlocked && achievement.rarity === 'rare' && (
-        <>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-0.5 h-0.5 bg-blue-400 rounded-full"
-              style={{
-                left: `${30 + i * 25}%`,
-                top: `${20 + i * 30}%`
-              }}
-              animate={{
-                scale: [0, 1, 0],
-                opacity: [0, 1, 0]
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.5 + Math.random() * 2,
-                ease: "easeInOut"
-              }}
-            />
-          ))}
-        </>
-      )}
+      {/* Minimal: removed rarity-based effects */}
 
       <div className="relative z-10">
-        {/* Rarity badge */}
-        <div className="flex items-center justify-between mb-3">
-          <span className={`px-2 py-1 text-xs font-bold rounded-full text-white bg-gradient-to-r ${config.gradient} capitalize`}>
-            {achievement.rarity}
-          </span>
+        {/* Top row: lock only (rarity removed) */}
+        <div className="flex items-center justify-end mb-2">
           {!achievement.unlocked && (
-            <div className="text-gray-400 dark:text-gray-500">
-              🔒
-            </div>
+            <div className="text-slate-400">🔒</div>
           )}
         </div>
 
         {/* Icon */}
         <div className="text-center mb-3">
-          <motion.div
-            className={`text-4xl ${achievement.unlocked ? '' : 'grayscale opacity-50'}`}
-            animate={achievement.unlocked && achievement.rarity === 'legendary' ? {
-              rotate: [0, 5, -5, 0],
-              scale: [1, 1.1, 1]
-            } : {}}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <motion.div className={`text-4xl ${achievement.unlocked ? '' : 'grayscale opacity-50'}`}>
             {achievement.icon}
           </motion.div>
         </div>
@@ -217,16 +114,14 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
           {/* Progress bar for partially completed achievements */}
           {!achievement.unlocked && achievement.progress !== undefined && achievement.maxProgress && (
             <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+              <div className="flex justify-between text-xs text-slate-400 mb-1">
                 <span>Progress</span>
                 <span>{achievement.progress}/{achievement.maxProgress}</span>
               </div>
-              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <motion.div
-                  className={`h-full bg-gradient-to-r ${config.gradient} rounded-full`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
-                  transition={{ duration: 1, ease: "easeInOut" }}
+              <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%`, backgroundColor: '#7c3aed', transition: 'width 800ms ease-in-out' }}
                 />
               </div>
             </div>
@@ -234,7 +129,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
 
           {/* Unlock date */}
           {achievement.unlocked && achievement.unlockedAt && (
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-2 text-xs text-slate-400">
               Unlocked {achievement.unlockedAt}
             </div>
           )}

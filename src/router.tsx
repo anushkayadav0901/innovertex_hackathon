@@ -68,6 +68,7 @@ export const routes: RouteObject[] = [
           </RequireAuth>
         ) },
       { path: 'leaderboard', element: <Leaderboard /> },
+      { path: 'progress', element: <Gamify /> },
       { path: 'gamify', element: <Gamify /> },
       { path: 'quest-map', element: <HackathonUniverseSystem /> },
       { path: 'quest-map-basic', element: <HackathonQuestMap /> },
