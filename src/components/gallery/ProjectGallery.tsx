@@ -99,6 +99,9 @@ export default function ProjectGallery() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+  const [showRequestModal, setShowRequestModal] = useState(false)
+  const [requestProjectId, setRequestProjectId] = useState<string | null>(null)
+  const [requestMessage, setRequestMessage] = useState('')
 
   const categories = ['All', 'AI/ML', 'IoT', 'Blockchain', 'AR/VR', 'Healthcare', 'Sustainability']
 
@@ -158,6 +161,24 @@ export default function ProjectGallery() {
     )
   }
 
+  const handleRequestChange = (projectId: string) => {
+    setRequestProjectId(projectId)
+    setShowRequestModal(true)
+  }
+
+  const handleSubmitRequest = () => {
+    if (!requestMessage.trim()) {
+      alert('Please enter a message')
+      return
+    }
+    
+    const project = projects.find(p => p.id === requestProjectId)
+    alert(`Request submitted for "${project?.title}"!\n\nYour message: ${requestMessage}\n\nThe project owner will be notified.`)
+    setShowRequestModal(false)
+    setRequestMessage('')
+    setRequestProjectId(null)
+  }
+
   return (
     <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -185,13 +206,13 @@ export default function ProjectGallery() {
         >
           {/* Search Bar */}
           <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
             <input
               type="text"
               placeholder="Search projects, technologies, or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10 pr-4 w-full"
+              className="input pl-14 pr-4 w-full"
             />
           </div>
 
@@ -257,6 +278,7 @@ export default function ProjectGallery() {
                   index={index}
                   viewMode={viewMode}
                   onClick={() => setSelectedProject(project)}
+                  onRequestChange={handleRequestChange}
                 />
               ))}
             </motion.div>
@@ -297,7 +319,53 @@ export default function ProjectGallery() {
       <ZoomModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
+        onRequestChange={handleRequestChange}
       />
+
+      {/* Request Access Modal */}
+      {showRequestModal && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowRequestModal(false)}
+        >
+          <motion.div
+            className="bg-slate-900 rounded-2xl border border-white/20 p-6 max-w-md w-full"
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-bold text-white mb-4">Request Access</h3>
+            <p className="text-slate-300 mb-4">
+              Please provide a reason for requesting access to this project. The project owner will review your request.
+            </p>
+            <textarea
+              value={requestMessage}
+              onChange={(e) => setRequestMessage(e.target.value)}
+              placeholder="Enter your reason for access..."
+              className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-brand-400 resize-none"
+              rows={4}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setShowRequestModal(false)}
+                className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitRequest}
+                className="flex-1 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   )
 }

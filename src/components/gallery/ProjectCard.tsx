@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { ExternalLink, Github, Users, Award, Eye } from 'lucide-react'
+import { ExternalLink, Github, Users, Award, Eye, MessageSquare } from 'lucide-react'
 import { Project } from './ProjectGallery'
 import ImageCarousel from './ImageCarousel'
 
@@ -9,9 +9,10 @@ interface ProjectCardProps {
   index: number
   viewMode: 'grid' | 'list'
   onClick: () => void
+  onRequestChange: (projectId: string) => void
 }
 
-export default function ProjectCard({ project, index, viewMode, onClick }: ProjectCardProps) {
+export default function ProjectCard({ project, index, viewMode, onClick, onRequestChange }: ProjectCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   // Calculate masonry item height for grid layout
@@ -52,12 +53,6 @@ export default function ProjectCard({ project, index, viewMode, onClick }: Proje
                 alt={project.title}
                 className="w-full h-full object-cover"
               />
-              {project.featured && (
-                <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                  <Award className="w-3 h-3" />
-                  Featured
-                </div>
-              )}
             </div>
           </div>
           
@@ -82,13 +77,22 @@ export default function ProjectCard({ project, index, viewMode, onClick }: Proje
                 <span className="badge">{project.category}</span>
               </div>
               
-              <button
-                onClick={onClick}
-                className="btn-primary py-2 px-4 text-sm inline-flex items-center gap-2"
-              >
-                <Eye className="w-4 h-4" />
-                View Details
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={onClick}
+                  className="btn-primary py-2 px-4 text-sm inline-flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Details
+                </button>
+                <button
+                  onClick={() => onRequestChange(project.id)}
+                  className="btn-primary bg-purple-600 hover:bg-purple-700 py-2 px-4 text-sm inline-flex items-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Request
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -111,12 +115,7 @@ export default function ProjectCard({ project, index, viewMode, onClick }: Proje
             <div className="relative">
               <ImageCarousel images={project.images} />
               
-              {project.featured && (
-                <div className="absolute top-4 right-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10">
-                  <Award className="w-3 h-3" />
-                  Featured
-                </div>
-              )}
+
               
               {project.prize && (
                 <div className="absolute top-4 left-4 bg-gradient-to-r from-brand-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
@@ -151,15 +150,26 @@ export default function ProjectCard({ project, index, viewMode, onClick }: Proje
             
             {/* Hover overlay */}
             <div className="project-overlay">
-              <motion.button
-                onClick={onClick}
-                className="btn-primary mb-4"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </motion.button>
+              <div className="flex flex-col gap-2 mb-4">
+                <motion.button
+                  onClick={onClick}
+                  className="btn-primary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Details
+                </motion.button>
+                <motion.button
+                  onClick={() => onRequestChange(project.id)}
+                  className="btn-primary bg-purple-600 hover:bg-purple-700"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Request Change
+                </motion.button>
+              </div>
               
               <div className="flex gap-3">
                 {project.demoUrl && (
@@ -227,14 +237,23 @@ export default function ProjectCard({ project, index, viewMode, onClick }: Proje
                 )}
               </div>
               
-              <div className="flex gap-2 mt-4">
+              <div className="flex flex-col gap-2 mt-4">
                 <motion.button
                   onClick={onClick}
-                  className="btn-primary flex-1 text-sm"
+                  className="btn-primary text-sm"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   View Details
+                </motion.button>
+                <motion.button
+                  onClick={() => onRequestChange(project.id)}
+                  className="btn-primary bg-purple-600 hover:bg-purple-700 text-sm"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Request Change
                 </motion.button>
               </div>
             </div>
