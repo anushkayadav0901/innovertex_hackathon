@@ -2,7 +2,30 @@ import React from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useStore } from '@/store/useStore'
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Stack, Snackbar, Alert } from '@mui/material'
 import { Calendar, Clock, Users, Target, CheckCircle2 } from 'lucide-react'
+import EnhancedTeamBuilderModal from '@/components/team/EnhancedTeamBuilderModal'
+import TeamMatchingResults from '@/components/team/TeamMatchingResults'
+import { findMatchingMembers } from '@/data/teamMembersData'
+
+// Define TeamCriteria interface to match the one in EnhancedTeamBuilderModal
+interface TeamCriteria {
+  personalityTraits: {
+    creativity: 'low' | 'moderate' | 'high' | null
+    leadership: 'low' | 'moderate' | 'high' | null
+    teamwork: 'low' | 'moderate' | 'high' | null
+    organization: 'low' | 'moderate' | 'high' | null
+    problemSolving: 'low' | 'moderate' | 'high' | null
+    adaptability: 'low' | 'moderate' | 'high' | null
+  }
+  techStack: {
+    required: string[]
+    preferred: string[]
+    experience: 'junior' | 'mid' | 'senior' | 'any'
+  }
+  availability: 'full-time' | 'part-time' | 'any'
+  location: 'remote' | 'onsite' | 'hybrid' | 'any'
+}
 
 export default function HackathonDetail() {
   const { id } = useParams()
@@ -12,6 +35,52 @@ export default function HackathonDetail() {
   const mentorRequests = useStore(s => s.mentorRequests)
   const currentUserId = useStore(s => s.session.currentUserId)
   const [teamName, setTeamName] = useState('')
+  // MUI dialogs state
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [buildOpen, setBuildOpen] = useState(false)
+  const [inviteLink, setInviteLink] = useState('')
+  const [copyToast, setCopyToast] = useState(false)
+  const [traits, setTraits] = useState({
+    creativity: '', teamwork: '', communication: '', problemSolving: '', adaptability: ''
+  })
+  
+  // Enhanced team builder state
+  const [showEnhancedModal, setShowEnhancedModal] = useState(false)
+  const [showMatchingResults, setShowMatchingResults] = useState(false)
+  const [matchingCriteria, setMatchingCriteria] = useState<TeamCriteria | null>(null)
+  const [matchingMembers, setMatchingMembers] = useState<any[]>([])
+
+  const handleInvite = () => {
+    if (!teamName.trim()) {
+      alert('Enter a team name to generate an invite link')
+      return
+    }
+    const teamId = btoa(`${id || 'hack'}-${teamName.trim()}-${Date.now()}`).replace(/=+$/,'')
+    const link = `${window.location.origin}/join/${teamId}`
+    setInviteLink(link)
+    setInviteOpen(true)
+  }
+
+  const handleCopy = async () => {
+    try { await navigator.clipboard.writeText(inviteLink); setCopyToast(true) } catch {}
+  }
+
+  const handleBuildSubmit = () => {
+    try { localStorage.setItem('build:traits', JSON.stringify(traits)) } catch {}
+    setBuildOpen(false)
+  }
+
+  const handleFindMatches = (criteria: TeamCriteria) => {
+    const matches = findMatchingMembers(criteria)
+    setMatchingCriteria(criteria)
+    setMatchingMembers(matches)
+    setShowMatchingResults(true)
+  }
+
+  const handleInviteMember = (member: any) => {
+    // Here you would typically send an invitation
+    alert(`Invitation sent to ${member.name}!`)
+  }
 
   return (
     <div className="space-y-6">
@@ -22,6 +91,59 @@ export default function HackathonDetail() {
         <div className="mt-2 flex flex-wrap gap-2">
           {hack?.tags.map(t => <span key={t} className="badge">{t}</span>)}
         </div>
+
+      {/* Invite via Link Dialog */}
+      <Dialog open={inviteOpen} onClose={() => setInviteOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Invite via Link</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField label="Invite Link" value={inviteLink} InputProps={{ readOnly: true }} fullWidth />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCopy}>Copy</Button>
+          <Button onClick={() => setInviteOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Build Team Dialog */}
+      <Dialog open={buildOpen} onClose={() => setBuildOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Desired Teammate Traits</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 0.5 }}>
+            <TextField label="Creativity" value={traits.creativity} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, creativity: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Teamwork" value={traits.teamwork} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, teamwork: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Communication" value={traits.communication} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, communication: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Problem Solving" value={traits.problemSolving} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, problemSolving: e.target.value}))} fullWidth multiline minRows={2} />
+            <TextField label="Adaptability" value={traits.adaptability} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>setTraits(t=>({...t, adaptability: e.target.value}))} fullWidth multiline minRows={2} />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBuildOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleBuildSubmit}>Submit</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={copyToast} autoHideDuration={2000} onClose={() => setCopyToast(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity="success" variant="filled" sx={{ width: '100%' }}>Link copied</Alert>
+      </Snackbar>
+
+      {/* Enhanced Team Builder Modal */}
+      <EnhancedTeamBuilderModal
+        isOpen={showEnhancedModal}
+        onClose={() => setShowEnhancedModal(false)}
+        onFindMatches={handleFindMatches}
+      />
+
+      {/* Team Matching Results */}
+      {showMatchingResults && matchingCriteria && (
+        <TeamMatchingResults
+          criteria={matchingCriteria}
+          matches={matchingMembers}
+          onClose={() => setShowMatchingResults(false)}
+          onInviteMember={handleInviteMember}
+        />
+      )}
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {currentUser?.role === 'mentor' ? (
             <>
@@ -65,10 +187,29 @@ export default function HackathonDetail() {
                       alert('Enter a team name')
                       return
                     }
-                    registerTeam(id, teamName.trim())
+                    const teamId = registerTeam(id, teamName.trim())
                     alert('Team registered! Now go to Submission Portal from Dashboard.')
                     setTeamName('')
                   }}>Register</button>
+                </div>
+                {/* Actions below Team Name */}
+                <div className="mt-3">
+                  <Stack direction="row" spacing={1}>
+                    <Button variant="outlined" size="small" onClick={handleInvite}>Invite via Link</Button>
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      onClick={() => setShowEnhancedModal(true)}
+                      sx={{ 
+                        background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                        '&:hover': {
+                          background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+                        }
+                      }}
+                    >
+                      Build Team
+                    </Button>
+                  </Stack>
                 </div>
               </div>
               <div className="card p-4">
@@ -84,22 +225,6 @@ export default function HackathonDetail() {
         </div>
         <div className="mt-4">
           <Link to="/discover" className="btn-primary">Back</Link>
-        </div>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="card p-6">
-          <h3 className="font-semibold">Announcements</h3>
-          <ul className="mt-2 list-disc pl-5 text-slate-300 text-sm">
-            <li>Kickoff at 10:00 AM IST</li>
-            <li>Team formation closes at 2:00 PM</li>
-          </ul>
-        </div>
-        <div className="card p-6">
-          <h3 className="font-semibold">FAQs</h3>
-          <ul className="mt-2 list-disc pl-5 text-slate-300 text-sm">
-            <li>Team size: 1-4</li>
-            <li>Submission: GitHub link and slide deck</li>
-          </ul>
         </div>
       </div>
     </div>

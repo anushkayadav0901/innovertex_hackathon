@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { uid } from '@/utils/id'
-import type { User, SessionState, Hackathon, Team, Submission, Evaluation, Role, Announcement, FAQ, Question, JudgeChat, TeamFeedback, JudgeApplication, BeginnerModeState, HelpRequest, MentorActivity, MentorRequest } from './types'
+import type { User, SessionState, Hackathon, Team, Submission, Evaluation, Role, Announcement, FAQ, Question, JudgeChat, TeamFeedback, JudgeApplication, BeginnerModeState, HelpRequest, MentorActivity, MentorRequest, FoodCouponWindow, FoodRedemptionRecord } from './types'
 
 type SeedData = {
   hackathons: Record<string, Hackathon>
@@ -28,6 +28,9 @@ interface AppState extends BeginnerModeState {
   helpRequests: Record<string, HelpRequest>
   mentorActivities: Record<string, MentorActivity>
   mentorRequests: Record<string, MentorRequest>
+  // Food coupons
+  foodWindows: Record<string, FoodCouponWindow>
+  foodRedemptions: Record<string, FoodRedemptionRecord>
   // Auth
   login: (email: string) => void
   logout: () => void
@@ -78,6 +81,11 @@ interface AppState extends BeginnerModeState {
   helpSeen: string[]
   markMilestone: (key: keyof AppState['onboarding'], value?: boolean) => void
   markHelpSeen: (key: string) => void
+  // Food coupon actions
+  activateFoodWindow: (hackathonId: string, durationHours: number) => void
+  getParticipantFoodToken: (hackathonId: string, userId: string) => string | undefined
+  redeemFoodToken: (token: string) => { ok: boolean; message: string; teamProgress?: { teamId: string; redeemed: number; total: number } }
+  endFoodWindow: (hackathonId: string) => void
 }
 
 const seed = (): SeedData => {
@@ -363,6 +371,8 @@ export const useStore = create<AppState>()(persist((set, get) => ({
   helpRequests: seed().helpRequests,
   mentorActivities: {},
   mentorRequests: seed().mentorRequests,
+  foodWindows: {},
+  foodRedemptions: {},
   login: (email) => {
     const { users } = get()
     const user = Object.values(users).find(u => u.email.toLowerCase() === email.toLowerCase())
@@ -602,6 +612,69 @@ export const useStore = create<AppState>()(persist((set, get) => ({
   // Onboarding + help actions
   markMilestone: (key, value = true) => set(state => ({ onboarding: { ...state.onboarding, [key]: value } })),
   markHelpSeen: (key) => set(state => ({ helpSeen: [...new Set([...(state.helpSeen || []), key])] })),
+  // Food coupons
+  activateFoodWindow: (hackathonId, durationHours) => {
+    const now = Date.now()
+    const endAt = now + Math.max(1, durationHours) * 60 * 60 * 1000
+    set(state => {
+      const existing = state.foodWindows[hackathonId]
+      const window: FoodCouponWindow = { hackathonId, startAt: now, endAt, tokens: existing?.tokens || {} }
+      return { foodWindows: { ...state.foodWindows, [hackathonId]: window } }
+    })
+  },
+  getParticipantFoodToken: (hackathonId, userId) => {
+    const { foodWindows, teams } = get()
+    const win = foodWindows[hackathonId]
+    if (!win) return undefined
+    if (Date.now() < win.startAt || Date.now() > win.endAt) return undefined
+    const team = Object.values(teams).find(t => t.hackathonId === hackathonId && t.members.includes(userId))
+    if (!team) return undefined
+    let token = win.tokens[userId]
+    if (!token) {
+      token = uid('food')
+      set(state => {
+        const w = state.foodWindows[hackathonId]
+        if (!w) return state
+        const updated: FoodCouponWindow = { ...w, tokens: { ...w.tokens, [userId]: token! } }
+        return { foodWindows: { ...state.foodWindows, [hackathonId]: updated } }
+      })
+      set(state => {
+        const rec: FoodRedemptionRecord = { token: token!, hackathonId, teamId: team.id, userId }
+        return { foodRedemptions: { ...state.foodRedemptions, [token!]: rec } }
+      })
+    }
+    return token
+  },
+  redeemFoodToken: (token) => {
+    const { foodRedemptions, foodWindows, teams } = get()
+    const rec = foodRedemptions[token]
+    if (!rec) return { ok: false, message: 'Invalid token' }
+    const win = foodWindows[rec.hackathonId]
+    const now = Date.now()
+    if (!win) return { ok: false, message: 'No active window' }
+    if (now < win.startAt || now > win.endAt) return { ok: false, message: 'Coupon window inactive' }
+    if (rec.redeemedAt) return { ok: false, message: 'Already redeemed' }
+    set(state => ({ foodRedemptions: { ...state.foodRedemptions, [token]: { ...state.foodRedemptions[token], redeemedAt: Date.now() } } }))
+    const team = teams[rec.teamId]
+    const total = team ? team.members.length : 0
+    const all = Object.values(get().foodRedemptions).filter(r => r.teamId === rec.teamId)
+    const redeemed = all.filter(r => !!r.redeemedAt).length
+    return { ok: true, message: 'Enjoy your meal!', teamProgress: { teamId: rec.teamId, redeemed, total } }
+  },
+  endFoodWindow: (hackathonId) => {
+    const now = Date.now()
+    set(state => {
+      const win = state.foodWindows[hackathonId]
+      if (!win) return state
+      const updatedWin: FoodCouponWindow = { ...win, endAt: now, tokens: {} }
+      const newRed: typeof state.foodRedemptions = {}
+      for (const [tok, rec] of Object.entries(state.foodRedemptions)) {
+        if (rec.hackathonId !== hackathonId) newRed[tok] = rec
+        else if (rec.redeemedAt) newRed[tok] = rec
+      }
+      return { foodWindows: { ...state.foodWindows, [hackathonId]: updatedWin }, foodRedemptions: newRed }
+    })
+  },
 }), { 
   name: 'innovortex-store',
   version: 4,

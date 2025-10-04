@@ -152,3 +152,20 @@ export interface MentorRequest {
   createdAt: number
   decidedAt?: number
 }
+
+// Food coupon system types
+export interface FoodCouponWindow {
+  hackathonId: string
+  startAt: number
+  endAt: number
+  // lazily generated tokens per participant userId
+  tokens: Record<string, string>
+}
+
+export interface FoodRedemptionRecord {
+  token: string
+  hackathonId: string
+  teamId: string
+  userId: string
+  redeemedAt?: number // set when scanned
+}

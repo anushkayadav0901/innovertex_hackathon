@@ -4,26 +4,32 @@ import { useStore } from '@/store/useStore'
 
 export default function CreateHackathon() {
   const createHackathon = useStore(s => s.createHackathon)
+  const currentUserId = useStore(s => s.session.currentUserId)
+  const currentUser = useStore(s => currentUserId ? s.users[currentUserId] : undefined)
   const [title, setTitle] = useState('')
-  const [org, setOrg] = useState('')
+  const org = currentUser?.name || ''
   const [dateRange, setDateRange] = useState('')
-  const [tags, setTags] = useState<string>('AI, Web')
-  const [prize, setPrize] = useState('₹50,000')
+  const [tags, setTags] = useState<string>('')
+  // Prize configuration
+  const [prizeMode, setPrizeMode] = useState<'overall' | 'perProblem' | ''>('')
+  const [prizePool, setPrizePool] = useState<string>('')
+  const [firstPrize, setFirstPrize] = useState<string>('')
+  const [secondPrize, setSecondPrize] = useState<string>('')
+  const [thirdPrize, setThirdPrize] = useState<string>('')
   const [description, setDescription] = useState('')
-  const [criteria, setCriteria] = useState<{ id: string; label: string; max: number }[]>([
-    { id: uid('c'), label: 'Innovation', max: 10 },
-  ])
-
-  const addCriterion = () => setCriteria(c => [...c, { id: uid('c'), label: '', max: 10 }])
-  const updateCriterion = (id: string, key: 'label' | 'max', value: string) =>
-    setCriteria(cs => cs.map(c => (c.id === id ? { ...c, [key]: key === 'max' ? Number(value) : value } : c)))
-  const removeCriterion = (id: string) => setCriteria(cs => cs.filter(c => c.id !== id))
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title || !org || !dateRange || criteria.length === 0) {
-      alert('Please complete title, org, dates, and at least one criterion')
+    if (!title || !dateRange) {
+      alert('Please complete title and dates')
       return
+    }
+    // Build prize string based on mode
+    let prize = ''
+    if (prizeMode === 'overall') {
+      prize = `Prize Pool: ${prizePool || 'TBD'}; 1st: ${firstPrize || 'TBD'}; 2nd: ${secondPrize || 'TBD'}; 3rd: ${thirdPrize || 'TBD'}`
+    } else if (prizeMode === 'perProblem') {
+      prize = 'Prizes per problem statements'
     }
     const id = createHackathon({
       title,
@@ -32,10 +38,11 @@ export default function CreateHackathon() {
       tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       prize,
       description,
-      criteria: criteria.map(c => ({ ...c, max: Number(c.max) || 10 })),
+      // Default judging criteria (hidden from form)
+      criteria: [{ id: uid('c'), label: 'Innovation', max: 10 }],
     })
     alert('Hackathon created! ID: ' + id)
-    setTitle(''); setOrg(''); setDateRange(''); setTags('AI'); setPrize('₹50,000'); setDescription(''); setCriteria([{ id: uid('c'), label: 'Innovation', max: 10 }])
+    setTitle(''); setDateRange(''); setTags(''); setPrizeMode(''); setPrizePool(''); setFirstPrize(''); setSecondPrize(''); setThirdPrize(''); setDescription('')
   }
 
   return (
@@ -44,30 +51,38 @@ export default function CreateHackathon() {
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
         <input className="input" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
         <div className="grid gap-3 sm:grid-cols-2">
-          <input className="input" placeholder="Organizer Name" value={org} onChange={e => setOrg(e.target.value)} />
+          <input className="input" placeholder="Organizer Name" value={org} readOnly disabled />
           <input className="input" placeholder="Date Range (e.g. Oct 15 - Oct 17)" value={dateRange} onChange={e => setDateRange(e.target.value)} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <input className="input" placeholder="Tags (comma-separated)" value={tags} onChange={e => setTags(e.target.value)} />
-          <input className="input" placeholder="Prize (e.g. ₹1,00,000)" value={prize} onChange={e => setPrize(e.target.value)} />
+          <input className="input" placeholder="Domain" value={tags} onChange={e => setTags(e.target.value)} />
+          <div className="input bg-transparent p-0 border-0">
+            <div className="grid gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-sm text-slate-300 flex items-center gap-2">
+                  <input type="radio" name="prizeMode" checked={prizeMode==='perProblem'} onChange={()=>setPrizeMode('perProblem')} />
+                  Per problem statements
+                </label>
+                <label className="text-sm text-slate-300 flex items-center gap-2">
+                  <input type="radio" name="prizeMode" checked={prizeMode==='overall'} onChange={()=>setPrizeMode('overall')} />
+                  Overall (1st/2nd/3rd)
+                </label>
+              </div>
+              {prizeMode === 'overall' && (
+                <div className="grid gap-2 sm:grid-cols-4">
+                  <input className="input" placeholder="Prize Pool" value={prizePool} onChange={e => setPrizePool(e.target.value)} />
+                  <input className="input" placeholder="1st" value={firstPrize} onChange={e => setFirstPrize(e.target.value)} />
+                  <input className="input" placeholder="2nd" value={secondPrize} onChange={e => setSecondPrize(e.target.value)} />
+                  <input className="input" placeholder="3rd" value={thirdPrize} onChange={e => setThirdPrize(e.target.value)} />
+                </div>
+              )}
+              {prizeMode === 'perProblem' && (
+                <div className="text-xs text-slate-400">Prizes will be specified per problem statements.</div>
+              )}
+            </div>
+          </div>
         </div>
         <textarea className="input" placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} />
-
-        <div className="rounded-xl border border-white/10 p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="font-semibold">Judging Criteria</h3>
-            <button type="button" onClick={addCriterion} className="btn-primary bg-white/10 hover:bg-white/20">Add Criterion</button>
-          </div>
-          <div className="space-y-3">
-            {criteria.map(c => (
-              <div key={c.id} className="grid gap-3 sm:grid-cols-12">
-                <input className="input sm:col-span-8" placeholder="Label" value={c.label} onChange={e => updateCriterion(c.id, 'label', e.target.value)} />
-                <input className="input sm:col-span-3" type="number" min={1} placeholder="Max" value={c.max} onChange={e => updateCriterion(c.id, 'max', e.target.value)} />
-                <button type="button" className="btn-primary bg-red-500/20 hover:bg-red-500/30" onClick={() => removeCriterion(c.id)}>Remove</button>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <button className="btn-primary" type="submit">Create</button>
       </form>

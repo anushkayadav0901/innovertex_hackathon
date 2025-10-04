@@ -26,6 +26,8 @@ import StepByStepQuestMap from './pages/StepByStepQuestMap'
 import HackathonUniverseSystem from './pages/HackathonUniverseSystem'
 import SearchInterface from './components/SearchInterface'
 import PerformanceDemo from './pages/PerformanceDemo'
+import FoodScan from './pages/FoodScan'
+import ManageHackathon from './pages/Organizer/ManageHackathon'
 
 export const routes: RouteObject[] = [
   {
@@ -82,9 +84,15 @@ export const routes: RouteObject[] = [
       { path: 'gallery', element: <Gallery /> },
       { path: 'teams', element: <Teams /> },
       { path: 'community', element: <Community /> },
+      { path: 'food-scan', element: <FoodScan /> },
       { path: 'organizer/create', element: (
           <RequireAuth>
             <CreateHackathon />
+          </RequireAuth>
+        ) },
+      { path: 'organizer/manage/:id', element: (
+          <RequireAuth>
+            <ManageHackathon />
           </RequireAuth>
         ) },
       { path: 'comms/:id', element: <CommunicationHub /> },

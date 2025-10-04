@@ -88,7 +88,6 @@ const EnhancedHackathonQuestMap: React.FC = () => {
   };
 
   const handleTeamClick = (team: Team) => {
-    setSelectedTeam(team);
     if (judgeWalkingMode) {
       setJudgeEvaluating(team);
     }
@@ -102,7 +101,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="text-white text-center"
         >
-          <div className="text-2xl font-bold mb-4">🗺️ Loading Epic Quest Map...</div>
+          <div className="text-2xl font-bold mb-4">Loading Epic Quest Map...</div>
           <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
         </motion.div>
       </div>
@@ -206,7 +205,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
         className="absolute top-4 left-4 bg-black bg-opacity-60 backdrop-blur-md text-white p-4 rounded-xl border border-white/20"
       >
         <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
-          🗺️ Epic Hackathon Quest
+          Epic Hackathon Quest
         </h1>
         <p className="text-sm opacity-90 mb-3">
           Interactive journey • Live competition • Judge exploration
@@ -242,7 +241,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {judgeWalkingMode ? '🚶 Walking Mode' : '🎮 Judge Walk'}
+              {judgeWalkingMode ? 'Walking Mode' : 'Judge Walk'}
             </button>
             
             <button
@@ -253,7 +252,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
                   : 'bg-gray-600 hover:bg-gray-700'
               }`}
             >
-              {showTrails ? '✨ Trails' : '✨ Show Trails'}
+              {showTrails ? 'Trails' : 'Show Trails'}
             </button>
           </div>
 
@@ -266,7 +265,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
                   : 'bg-gray-600 hover:bg-gray-700'
               }`}
             >
-              {dayNightCycle ? '🌅 Day/Night' : '🌙 Static Sky'}
+              {dayNightCycle ? 'Day/Night' : 'Static Sky'}
             </button>
             
             <button
@@ -277,7 +276,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
                   : 'bg-gray-600 hover:bg-gray-700'
               }`}
             >
-              {musicEnabled ? '🎵 Music ON' : '🎵 Music'}
+              {musicEnabled ? 'Music ON' : 'Music'}
             </button>
           </div>
         </div>
@@ -289,7 +288,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
             className="mt-3 text-xs bg-green-900/50 p-2 rounded-lg border border-green-500/30"
           >
             <p className="font-semibold text-green-300 mb-1">Judge Mode Active</p>
-            <p>🎮 WASD to move • Mouse to look • Click teams to evaluate • ESC to exit</p>
+            <p>WASD to move • Mouse to look • Click teams to evaluate • ESC to exit</p>
           </motion.div>
         )}
       </motion.div>
@@ -343,7 +342,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
             {judgeWalkingMode && (
               <div className="mt-3 pt-3 border-t border-white/20">
                 <p className="text-xs text-green-400 flex items-center gap-1">
-                  👆 Click to evaluate this team
+                  Click to evaluate this team
                 </p>
               </div>
             )}
@@ -428,7 +427,7 @@ const EnhancedHackathonQuestMap: React.FC = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                     >
-                      🔗 View Submission
+                      View Submission
                     </a>
                   )}
                 </div>
