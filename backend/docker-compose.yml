@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  hackathon-backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: hackathon-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./database:/app/database
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_PATH=/app/database/hackathon.db
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-minimum-32-characters-long}
+      - JWT_EXPIRATION=24h
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - SOCKET_CORS_ORIGIN=${SOCKET_CORS_ORIGIN:-http://localhost:5173}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME:-hackathon-uploads}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=1000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Nginx reverse proxy for production
+  nginx:
+    image: nginx:alpine
+    container_name: hackathon-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - hackathon-backend
+    restart: unless-stopped
+    profiles:
+      - production
+
+networks:
+  default:
+    name: hackathon-network
